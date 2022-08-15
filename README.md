@@ -30,4 +30,4 @@ GNU GENERAL PUBLIC LICENSE
 Output:
 -------------
 You can try the Pre-compiled EXE in the bin\Debug folder.
-<a href="https://ibb.co/YyRmr8h"><img src="https://i.ibb.co/qWyKZ9p/Sin-t-tulo.png" alt="Sin-t-tulo" border="0" target="_blank"></a>
+<a href="https://ibb.co/YyRmr8h" target="_blank"><img src="https://i.ibb.co/qWyKZ9p/Sin-t-tulo.png" alt="Sin-t-tulo" border="0"></a>
