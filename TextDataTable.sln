@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1972
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextDataTable", "TextDataTable\TextDataTable.csproj", "{A21C314C-3E2F-4AC9-AB39-61B847C323F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A21C314C-3E2F-4AC9-AB39-61B847C323F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A21C314C-3E2F-4AC9-AB39-61B847C323F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A21C314C-3E2F-4AC9-AB39-61B847C323F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A21C314C-3E2F-4AC9-AB39-61B847C323F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BEC4C3C3-B7CC-414F-ABFA-29FF82A09C05}
+	EndGlobalSection
+EndGlobal
