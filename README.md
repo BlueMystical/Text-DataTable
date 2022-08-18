@@ -19,11 +19,12 @@ Characteristics:
 - Supports Field Grouping. 
 - Supports Cell Data Formatting: (https://docs.microsoft.com/en-us/dotnet/standard/base-types/formatting-types)
 
-Requeriments and Installation:
+Requeriments:
 -------------
 
 - .NET Framework 4.52 or Superior
 - Visual Studio 2017 or Superior
+- Most use a Monospaced Font: Cascadia Code, Cascadia Mono, Consolas, Courier New, Lucida Sans Typewriter.
 
 Licence
 -------------
