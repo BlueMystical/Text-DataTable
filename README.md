@@ -8,13 +8,15 @@ Characteristics:
 
 - Create Text Table into a Text File.
 - Create Text Table into a PNG Image.
-- JSON Configuration.
+- 100% JSON Configuration.
 - Acepts Dynamic Data, you can load any DataSet Objects.
 - Optional Header and Footer Sections.
 - Unlimited Columns.
 - Supported Data Types: int, long, decimal, DateTime, string, boolean, Calculated.
-- Supports Calculated Fields, Supported Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX, CONCAT.
-- Optional Summary Fields. Supported Agregate Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX.
+- Supports Calculated Fields, Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX, CONCAT.
+- Optional Summary Fields. Agregate Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX.
+- Supports Field Sorting by Multiple Columns (up to 4) Ascending and Descending.
+- Supports Field Grouping. 
 - Supports Cell Data Formatting: (https://docs.microsoft.com/en-us/dotnet/standard/base-types/formatting-types)
 
 Requeriments and Installation:
