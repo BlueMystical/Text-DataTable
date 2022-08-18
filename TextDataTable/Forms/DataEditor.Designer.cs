@@ -29,11 +29,11 @@
 		private void InitializeComponent()
 		{
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.cmdCustomData = new System.Windows.Forms.Button();
 			this.cmdApply = new System.Windows.Forms.Button();
 			this.dataGridView = new System.Windows.Forms.DataGridView();
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.textBox1 = new System.Windows.Forms.TextBox();
-			this.cmdCustomData = new System.Windows.Forms.Button();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -51,6 +51,16 @@
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(800, 38);
 			this.panel1.TabIndex = 0;
+			// 
+			// cmdCustomData
+			// 
+			this.cmdCustomData.Location = new System.Drawing.Point(13, 7);
+			this.cmdCustomData.Name = "cmdCustomData";
+			this.cmdCustomData.Size = new System.Drawing.Size(132, 23);
+			this.cmdCustomData.TabIndex = 1;
+			this.cmdCustomData.Text = "Add Custom Data";
+			this.cmdCustomData.UseVisualStyleBackColor = true;
+			this.cmdCustomData.Click += new System.EventHandler(this.cmdCustomData_Click);
 			// 
 			// cmdApply
 			// 
@@ -97,18 +107,9 @@
 			this.textBox1.Multiline = true;
 			this.textBox1.Name = "textBox1";
 			this.textBox1.ReadOnly = true;
+			this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
 			this.textBox1.Size = new System.Drawing.Size(207, 412);
 			this.textBox1.TabIndex = 0;
-			// 
-			// cmdCustomData
-			// 
-			this.cmdCustomData.Location = new System.Drawing.Point(13, 7);
-			this.cmdCustomData.Name = "cmdCustomData";
-			this.cmdCustomData.Size = new System.Drawing.Size(114, 23);
-			this.cmdCustomData.TabIndex = 1;
-			this.cmdCustomData.Text = "Custom Data";
-			this.cmdCustomData.UseVisualStyleBackColor = true;
-			this.cmdCustomData.Click += new System.EventHandler(this.cmdCustomData_Click);
 			// 
 			// DataEditor
 			// 

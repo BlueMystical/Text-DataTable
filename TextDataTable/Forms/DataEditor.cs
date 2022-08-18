@@ -53,42 +53,96 @@ namespace TextDataTable.Forms
 						Field1 = 1001,
 						Field2 = "Custom Text for Field 1",
 						Field3 = 1001.9876m,
-						Field4 = DateTime.Today.AddDays(-10)
+						Field4 = DateTime.Today.AddDays(-10),
+						ColorField = System.Drawing.Color.FromArgb(128,255,255,0)
 					},
 					new myCustomData()
 					{
 						Field1 = 1002,
 						Field2 = "Custom Text for Field 2",
 						Field3 = 507.2345m,
-						Field4 = DateTime.Today.AddDays(-8)
+						Field4 = DateTime.Today.AddDays(-8),
+						ColorField = System.Drawing.Color.Brown
 					},
 					new myCustomData()
 					{
 						Field1 = 1003,
 						Field2 = "Custom Text for Field 3",
 						Field3 = 7777.666m,
-						Field4 = DateTime.Today.AddDays(-6)
+						Field4 = DateTime.Today.AddDays(-6),
+						ColorField = System.Drawing.Color.Pink
 					},
 					new myCustomData()
 					{
 						Field1 = 1004,
 						Field2 = "Custom Text for Field 4",
 						Field3 = 2054.94446m,
-						Field4 = DateTime.Today.AddDays(-4)
+						Field4 = DateTime.Today.AddDays(-4),
+						ColorField = System.Drawing.Color.Orange
 					},
 					new myCustomData()
 					{
 						Field1 = 1005,
 						Field2 = "Custom Text for Field 5",
 						Field3 = 1001.9876m,
-						Field4 = DateTime.Today.AddDays(-2)
+						Field4 = DateTime.Today.AddDays(-2),
+						ColorField = System.Drawing.Color.BlueViolet
 					},
 					new myCustomData()
 					{
 						Field1 = 1006,
 						Field2 = "Custom Text for Field 6",
 						Field3 = 99.75643m,
-						Field4 = DateTime.Today.AddDays(0)
+						Field4 = DateTime.Today.AddDays(0),
+						ColorField = System.Drawing.Color.Turquoise
+					},
+					new myCustomData()
+					{
+						Field1 = 1001,
+						Field2 = "Custom Text for Field 1",
+						Field3 = 101.9876m,
+						Field4 = DateTime.Today.AddDays(-10),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1002,
+						Field2 = "Custom Text for Field 2",
+						Field3 = 5070.2345m,
+						Field4 = DateTime.Today.AddDays(-8),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1003,
+						Field2 = "Custom Text for Field 3",
+						Field3 = 777.666m,
+						Field4 = DateTime.Today.AddDays(-6),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1004,
+						Field2 = "Custom Text for Field 4",
+						Field3 = 254.94446m,
+						Field4 = DateTime.Today.AddDays(-4),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1005,
+						Field2 = "Custom Text for Field 5",
+						Field3 = 101.9876m,
+						Field4 = DateTime.Today.AddDays(-2),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1006,
+						Field2 = "Custom Text for Field 6",
+						Field3 = 999.75643m,
+						Field4 = DateTime.Today.AddDays(0),
+						ColorField = System.Drawing.Color.BlueViolet
 					}
 				});
 
@@ -96,7 +150,7 @@ namespace TextDataTable.Forms
 				this.MyTableConfiguration.data = CustomData;
 				this.dataGridView.DataSource = this.MyTableConfiguration.data;
 
-				//We need to Update the Column Definitions for the new DataSet:
+				//Since We completely changed the DataSet, now We need to Update the Column Definitions:
 				this.MyTableConfiguration.columns = new List<Column>(new Column[] {
 					new Column()
 					{
@@ -132,7 +186,17 @@ namespace TextDataTable.Forms
 						type = "DateTime",
 						width = 100,
 						length = 8,
+						align = "center",
 						format = "{0:d}"
+					},
+					new Column()
+					{
+						title = "Color",
+						field = "ColorField",
+						type = "Color",
+						width = 400,
+						length = 28,
+						format = null
 					},
 					/* HERE WE ARE GOING TO ADD A CALCULATED FIELD WICH WILL BE THE SUM OF	Field1 and Field3 */
 					new Column()
@@ -156,13 +220,37 @@ namespace TextDataTable.Forms
 						field = "Field3",
 						agregate = "SUM",
 						format = "{0:n2}"
+					},
+					new Summary()
+					{
+						field = "Field4",
+						agregate = "COUNT",
+						format = "{0} days"
 					}
 				};
 
 				/* FOR THIS EXAMPLE, WE ALSO GOING TO IGNORE THE FOOTER */
 				this.MyTableConfiguration.footer = null;
-
 				this.MyTableConfiguration.header.title = "Custom DataSet on the Table";
+
+				/* ENABLE AND SORT THE DATA BY 2 FIELDS  */
+				this.MyTableConfiguration.sorting = new Sorting(true)
+				{
+					fields = new List<string>(new string[] {
+						"Field1 DESC",
+						"Field3" //<- 'ASC' is default
+					})
+				};
+
+				/* GROUPING */
+				this.MyTableConfiguration.grouping = new Grouping(true)
+				{
+					repeat_column_headers = false,
+					show_summary = true,
+					fields = new List<string>(new string[] {
+						"Field2"
+					})
+				};
 			}
 		}
 	}
@@ -175,5 +263,6 @@ namespace TextDataTable.Forms
 		public string Field2 { get; set; }
 		public decimal Field3 { get; set; }
 		public DateTime Field4 { get; set; }
+		public System.Drawing.Color ColorField { get; set; }
 	}
 }

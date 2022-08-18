@@ -8,22 +8,36 @@ namespace TextDataTable
 	{
 		public TableConfiguration() { }
 
-		[Description("Behavior Properties of the Table"), Category("Behavior"), DisplayName("Properties")]
+		/// <summary>[Required] Behavior Properties of the Table.</summary>
+		[Description("[Required] Behavior Properties of the Table"), Category("Behavior"), DisplayName("Properties")]
 		public Propiedades properties { get; set; }
 
-		[Description("Box used to show a Custom Title for the Table"), Category("Appearance"), DisplayName("Header")]
+		/// <summary>[Optional] Box used to show a Custom Title for the Table.</summary>
+		[Description("[Optional] Box used to show a Custom Title for the Table"), Category("Appearance"), DisplayName("Header")]
 		public Header header { get; set; }
 
-		[Description("Box used to show a Custom Text for the Table"), Category("Appearance"), DisplayName("Footer")]
+		/// <summary>[Optional] Box used to show a Custom Text for the Table.</summary>
+		[Description("[Optional] Box used to show a Custom Text for the Table"), Category("Appearance"), DisplayName("Footer")]
 		public Header footer { get; set; }
 
-		[Description("Definition of the Columns"), Category("Data"), DisplayName("Columns")]
+		/// <summary>[Required] Definition of the Columns.</summary>
+		[Description("[Required] Definition of the Columns"), Category("Data"), DisplayName("Columns")]
 		public List<Column> columns { get; set; }
 
-		[Description("Calculated Fields for the Columns"), Category("Data"), DisplayName("Summary")]
+		/// <summary>[Optional] Columns to Sort By, Up to 4 Columns.</summary>
+		[Description("[Optional] Columns to Sort By, Up to 4 Columns."), Category("Data"), DisplayName("Sorting")]
+		public Sorting sorting { get; set; }
+
+		/// <summary>[Optional] Columns to Group By, Up to 4 Columns.</summary>
+		[Description("[Optional] Columns to Group By, Up to 4 Columns."), Category("Data"), DisplayName("Grouping")]
+		public Grouping grouping { get; set; }
+
+		/// <summary>[Optional] Calculated Fields for the Columns.</summary>
+		[Description("[Optional] Calculated Fields for the Columns"), Category("Data"), DisplayName("Summary")]
 		public List<Summary> summary { get; set; }
 
-		[Description("Dynamic Data, [field_name: value,..]"), Category("Data"), DisplayName("Dynamic Data")]
+		/// <summary>[Required] Dynamic Data to feed the Table.</summary>
+		[Description("[Required] Dynamic Data to feed the Table."), Category("Data"), DisplayName("Dynamic Data")]
 		public dynamic data { get; set; }
 	}
 
@@ -107,21 +121,23 @@ namespace TextDataTable
 	{
 		public Table() { }
 
-		[Description("ARGB Color for the Table Background"),
+		[Description("ARGB Color for the Table Background (only for Image Tables)"),
 		DisplayName("Back Color"), DefaultValue("128, 0, 0, 0")]
 		public string backcolor_argb { get; set; }
 
-		[Description("ARGB Color for the Text Font, Only for ImageTable"),
+		[Description("ARGB Color for the Text Font, Only for ImageTable (only for Image Tables)"),
 		 DisplayName("Text Color"), DefaultValue("255, 255, 106, 0"), Category("Appearance")]
 		public string forecolor_argb { get; set; }
 
-		[Description("Margin Spaces around the Texts, in Characters"), 
+		[Description("Margin Spaces around the Texts, in Characters (only for Text Tables)"), 
 		DisplayName("Cell Padding"), DefaultValue(1)]
 		public int cell_padding { get; set; }
 
-		[Description("Height of the Row Cells in Pixels"),
+		[Description("Height of the Row Cells in Pixels (Only for Image Tables)"),
 		DisplayName("Cell Height"), DefaultValue(30)]
 		public int cell_height { get; set; }
+
+		
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -201,5 +217,65 @@ namespace TextDataTable
 
 		[DisplayName("Format"), Description("Format Used to Show the Data"), Category("Appearance")]
 		public string format { get; set; }
+	}
+
+	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
+	public class Grouping
+	{
+		public Grouping() { }
+		public Grouping(bool pEnabled) { enabled = pEnabled; }
+
+		/// <summary>Enable or Disable the Data Grouping. Default: False</summary>
+		[DisplayName("Enabled"), Description("Enable or Disable the Data Grouping."), Category("Data")]
+		public bool enabled { get; set; } = false;
+
+		/// <summary>Data Fields to Group by</summary>
+		[DisplayName("Fields"), Description("Data Fields to Group by"), Category("Data")]
+		public List<string> fields { get; set; }
+
+		/// <summary>Hide or Show the Grouped Columns in the Table.</summary>
+		[DisplayName("Show Columns"), Description("Hide or Show the Grouped Columns in the Table."), Category("Data")]
+		public bool hide_group_columns { get; set; } = true;
+
+		/// <summary>Hide or Shows the Summaries for each Group.</summary>
+		[DisplayName("Show Summaries"), Description("Hide or Shows the Summaries for each Group."), Category("Data")]
+		public bool show_summary { get; set; } = true;
+
+		/// <summary>If 'true' draws the Column headers on every Group.
+		/// If 'false' the column headers are drawn only at the top, before the Groups.</summary>
+		[DisplayName("Repeat Headers"), Description("If 'true' draws the Column headers on every Group."), Category("Data")]
+		public bool repeat_column_headers { get; set; } = true;
+	}
+
+	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
+	public class Sorting
+	{
+		public Sorting() { }
+		public Sorting(bool pEnabled) { enabled = pEnabled; }
+
+		/// <summary>Enable or Disable the Data Sorting. Default: False</summary>
+		[DisplayName("Enabled"), Description("Enable or Disable the Data Sorting."), Category("Data")]
+		public bool enabled { get; set; } = false;
+
+		/// <summary>Data Fields to Sort by, up to 4 Sorting Fields. Default Sort Direction is 'ASC'.
+		/// <para>[REQUIRED] if 'enabled' is true.</para>
+		/// <para>You can specify the direction for each field:  'field_name1 DESC', 'field_name2 ASC'</para></summary>
+		[DisplayName("Fields"), Description("Data Fields to Sort by. Default Sort Direction is 'ASC'. [REQUIRED] if 'enabled' is true."), Category("Data")]
+		public List<string> fields { get; set; }
+	}
+
+	public class GroupData
+	{
+		public GroupData() { }
+
+		public List<string> Header { get; set; }
+		public List<string> Body { get; set; }
+		public List<string> Footer { get; set; }
+
+		public dynamic data { get; set; }
+
+		public Column column { get; set; }
+
+		public string CellData { get; set; }
 	}
 }

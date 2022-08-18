@@ -35,7 +35,10 @@ namespace TextDataTable
 		private void cmdImageTable_Click(object sender, EventArgs e)
 		{
 			//YOU CAN ALSO BUILD IT AS A PNG IMAGE:
-			System.Drawing.Bitmap myImageTable = this.myTable.Build_ImageDataTable(new Size(800, 450));
+			System.Drawing.Bitmap myImageTable = this.myTable.Build_ImageDataTable(
+				new Size(Convert.ToInt32(imgSize_W.Value), 
+						 Convert.ToInt32(imgSize_H.Value))
+			);
 			myImageTable.Save(@"C:\Temp\myImage.png", System.Drawing.Imaging.ImageFormat.Png);
 
 			System.Diagnostics.Process.Start(@"C:\Temp\myImage.png");
@@ -47,6 +50,7 @@ namespace TextDataTable
 			if (Form.ShowDialog() == DialogResult.OK)
 			{
 				myTable.TConfiguration = Form.MyTableConfiguration;
+				this.textBox1.Text = this.myTable.Build_TextDataTable();
 			}
 		}
 	}
