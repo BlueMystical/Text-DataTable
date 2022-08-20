@@ -71,6 +71,7 @@
     "title": "BLUE'S NAV ROUTE v0.1",
     "width": 100,
     "length": 27,
+    "align": "center",
     "backcolor_argb": "128, 0, 0, 0",
     "forecolor_argb": "255,255,255,255"
   },

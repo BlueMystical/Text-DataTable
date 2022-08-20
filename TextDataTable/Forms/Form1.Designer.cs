@@ -40,6 +40,7 @@
 			this.cmdTextTable = new System.Windows.Forms.Button();
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+			this.button1 = new System.Windows.Forms.Button();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_H)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_W)).BeginInit();
@@ -52,7 +53,7 @@
 			// textBox1
 			// 
 			this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.textBox1.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.textBox1.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.textBox1.Location = new System.Drawing.Point(0, 0);
 			this.textBox1.Multiline = true;
 			this.textBox1.Name = "textBox1";
@@ -63,6 +64,7 @@
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.button1);
 			this.panel1.Controls.Add(this.label2);
 			this.panel1.Controls.Add(this.label1);
 			this.panel1.Controls.Add(this.imgSize_H);
@@ -184,6 +186,16 @@
 			this.propertyGrid1.Size = new System.Drawing.Size(336, 544);
 			this.propertyGrid1.TabIndex = 0;
 			// 
+			// button1
+			// 
+			this.button1.Location = new System.Drawing.Point(468, 4);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(75, 23);
+			this.button1.TabIndex = 7;
+			this.button1.Text = "button1";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -221,6 +233,7 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.NumericUpDown imgSize_H;
 		private System.Windows.Forms.NumericUpDown imgSize_W;
+		private System.Windows.Forms.Button button1;
 	}
 }
 

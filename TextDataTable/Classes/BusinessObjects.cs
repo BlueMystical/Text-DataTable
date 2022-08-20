@@ -157,6 +157,10 @@ namespace TextDataTable
 		DisplayName("Length"), DefaultValue(100), Category("Appearance")]
 		public int length { get; set; }
 
+		/// <summary>Text Horizontal Align: [left, center, right] default 'center'</summary>
+		[DisplayName("Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
+		public string align { get; set; } = "center";
+
 		[Description("Background Color for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Background Color"), DefaultValue("128, 0, 0, 0"), Category("Appearance")]
 		public string backcolor_argb { get; set; }
@@ -203,6 +207,7 @@ namespace TextDataTable
 		public string align { get; set; } = "center";
 	}
 
+
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
 	public class Summary
 	{
@@ -233,9 +238,16 @@ namespace TextDataTable
 		[DisplayName("Fields"), Description("Data Fields to Group by"), Category("Data")]
 		public List<string> fields { get; set; }
 
-		/// <summary>Hide or Show the Grouped Columns in the Table.</summary>
-		[DisplayName("Show Columns"), Description("Hide or Show the Grouped Columns in the Table."), Category("Data")]
-		public bool hide_group_columns { get; set; } = true;
+		///// <summary>Hide or Show the Grouped Columns in the Table.</summary>
+		//[DisplayName("Show Columns"), Description("Hide or Show the Grouped Columns in the Table."), Category("Data")]
+		//public bool hide_group_columns { get; set; } = true;
+
+		/// <summary>Hide or Show the Records Count for each Group.</summary>
+		[DisplayName("Show Count"), Description("Hide or Show the Records Count for each Group."), Category("Data")]
+		public bool show_count { get; set; } = true;
+
+		/// <summary>Format to Show the Record Count.</summary>
+		public string CountFormat { get; set; } = "{0:n0} Records";
 
 		/// <summary>Hide or Shows the Summaries for each Group.</summary>
 		[DisplayName("Show Summaries"), Description("Hide or Shows the Summaries for each Group."), Category("Data")]
@@ -268,14 +280,59 @@ namespace TextDataTable
 	{
 		public GroupData() { }
 
+		/// <summary>Lines for the Group Header: The Top Line, the Middle line with text and the Bottom Border.</summary>
 		public List<string> Header { get; set; }
+
+		/// <summary>Text Content of the Group Header.</summary>
+		public string HeaderData { get; set; }
+
+		/// <summary>Lines for the Group Body showing the Filtered Data, each 2 lines is a Row of Data.</summary>
 		public List<string> Body { get; set; }
+
+		/// <summary>Lines for the Group Footer: used to show Summary Information.</summary>
 		public List<string> Footer { get; set; }
 
-		public dynamic data { get; set; }
+		/// <summary>Filtered Data for this Group. Each is a Row of Data.</summary>
+		public List<dynamic> data { get; set; }
 
-		public Column column { get; set; }
+		/// <summary>Column Definitions of the Grouping Fields.</summary>
+		public List<Column> Columns { get; set; }
 
-		public string CellData { get; set; }
+		/// <summary>Record Count for this Group.</summary>
+		public int Count { get; set; }
+		
+	}
+
+	public class Row
+	{
+		Dictionary<string, object> properties = new Dictionary<string, object>();
+		private int rIndex;
+
+		public Row(int rIndex)
+		{
+			this.rIndex = rIndex;
+		}
+
+		public object this[string name]
+		{
+			get
+			{
+				if (properties.ContainsKey(name))
+				{
+					return properties[name];
+				}
+				return null;
+			}
+			set
+			{
+				properties[name] = value;
+			}
+		}
+
+		public int RIndex
+		{
+			get { return rIndex; }
+			set { rIndex = value; }
+		}
 	}
 }

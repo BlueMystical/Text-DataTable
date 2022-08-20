@@ -96,6 +96,7 @@ namespace TextDataTable.Forms
 						Field4 = DateTime.Today.AddDays(0),
 						ColorField = System.Drawing.Color.Turquoise
 					},
+					//---------------------------------------------------------
 					new myCustomData()
 					{
 						Field1 = 1001,
@@ -126,7 +127,7 @@ namespace TextDataTable.Forms
 						Field2 = "Custom Text for Field 4",
 						Field3 = 254.94446m,
 						Field4 = DateTime.Today.AddDays(-4),
-						ColorField = System.Drawing.Color.BlueViolet
+						ColorField = System.Drawing.Color.Orange
 					},
 					new myCustomData()
 					{
@@ -142,7 +143,56 @@ namespace TextDataTable.Forms
 						Field2 = "Custom Text for Field 6",
 						Field3 = 999.75643m,
 						Field4 = DateTime.Today.AddDays(0),
+						ColorField = System.Drawing.Color.Turquoise
+					},
+					//---------------------------------------------------------------
+					new myCustomData()
+					{
+						Field1 = 1001,
+						Field2 = "Custom Text for Field 1",
+						Field3 = 101.9876m,
+						Field4 = DateTime.Today.AddDays(-10),
 						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1002,
+						Field2 = "Custom Text for Field 2",
+						Field3 = 5070.2345m,
+						Field4 = DateTime.Today.AddDays(-8),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1003,
+						Field2 = "Custom Text for Field 3",
+						Field3 = 777.666m,
+						Field4 = DateTime.Today.AddDays(-6),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1004,
+						Field2 = "Custom Text for Field 4",
+						Field3 = 254.94446m,
+						Field4 = DateTime.Today.AddDays(-4),
+						ColorField = System.Drawing.Color.Orange
+					},
+					new myCustomData()
+					{
+						Field1 = 1005,
+						Field2 = "Custom Text for Field 5",
+						Field3 = 101.9876m,
+						Field4 = DateTime.Today.AddDays(-2),
+						ColorField = System.Drawing.Color.BlueViolet
+					},
+					new myCustomData()
+					{
+						Field1 = 1006,
+						Field2 = "Custom Text for Field 6",
+						Field3 = 999.75643m,
+						Field4 = DateTime.Today.AddDays(0),
+						ColorField = System.Drawing.Color.Turquoise
 					}
 				});
 
@@ -248,11 +298,13 @@ namespace TextDataTable.Forms
 					repeat_column_headers = false,
 					show_summary = true,
 					fields = new List<string>(new string[] {
-						"Field2"
+						"Field2", "ColorField"
 					})
 				};
 			}
 		}
+
+		
 	}
 
 	public class myCustomData

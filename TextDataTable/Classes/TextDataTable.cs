@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 //using System.Linq.Dynamic;
 using System.Text;
 using System.Windows.Forms;
@@ -28,13 +29,49 @@ namespace TextDataTable
 
 		public TableConfiguration TConfiguration { get; set; }
 
-		public dynamic OriginalData { get; set; }
-		public dynamic SortedData { get; set; }
+		/// <summary>Holds the Un-Sorted, un-grouped Original Data.</summary>
+		public List<dynamic> OriginalData { get; set; }
+
+		/// <summary>Holds the Data Sorted.</summary>
+		public List<dynamic> SortedData { get; set; }
+
+		/// <summary>Holds the Data by Groups.</summary>
 		public List<GroupData> GroupedData { get; set; }
 
 		#endregion
 
-		#region Main Methods
+		#region Public Methods
+
+		/// <summary>Loads the JSON Configuration File.</summary>
+		public void LoadConfiguration()
+		{
+			try
+			{
+				if (ConfigJsonFile != null && ConfigJsonFile != string.Empty)
+				{
+					if (File.Exists(ConfigJsonFile))
+					{
+						using (TextReader reader = new StreamReader(ConfigJsonFile))
+						{
+							var fileContents = reader.ReadToEnd(); reader.Close();
+							TConfiguration = Newtonsoft.Json.JsonConvert.DeserializeObject<TableConfiguration>(fileContents);
+						}
+					}
+					else
+					{
+						MessageBox.Show("Configuration File Not Found.", "TextDataTable - ERROR 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					}
+				}
+				else
+				{
+					MessageBox.Show("Configuration File Not Found.", "TextDataTable - ERROR 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "TextDataTable - ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 
 		public string Build_TextDataTable()
 		{
@@ -50,14 +87,27 @@ namespace TextDataTable
 						TConfiguration.properties.borders.symbols[1] :
 						TConfiguration.properties.borders.symbols[0];
 
+					List<int> ColunmPositions = new List<int>(); //<- The Left position (in characters) for each Column.
 					int Margin = TConfiguration.properties.table.cell_padding;
 					StringBuilder Lines = new StringBuilder();
-					string CellText = string.Empty;
+					string CellText = string.Empty;					
 					int ColumnSize = 0;
+					int TableSize = 0; //<- Width in Characters of the Table's Body
 
 					#endregion
 
-					#region Header
+					#region Table Header
+
+					//Calculate the Table's Body Width:
+					if (TConfiguration.columns != null && TConfiguration.columns.Count > 0)
+					{
+						foreach (var _Column in TConfiguration.columns)
+						{
+							ColumnSize = (int)_Column.length + (Margin * 2);
+							TableSize += ColumnSize + 1;
+						}
+						TableSize++;
+					}					
 
 					if (TConfiguration.header != null)
 					{
@@ -66,25 +116,28 @@ namespace TextDataTable
 						ColumnSize = TConfiguration.header.length + (Margin * 2);
 
 						//Linea Superior:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Top.Left.ToString(),
-							new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
-							Borders.Top.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Top.Left.ToString(),
+								new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
+								Borders.Top.Right.ToString()
+						), TableSize, TConfiguration.header.align));
 
 						//Lineas Laterales y Texto:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Sides.Left.ToString(),
-							AlinearTexto(CellText, ColumnSize, "center"),
-							Borders.Sides.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Sides.Left.ToString(),
+								AlinearTexto(CellText, ColumnSize, "center"),
+								Borders.Sides.Right.ToString()
+						), TableSize, TConfiguration.header.align));
 
 						//Linea Inferior:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Bottom.Left.ToString(),
-							new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
-							Borders.Bottom.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Bottom.Left.ToString(),
+								new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
+								Borders.Bottom.Right.ToString()
+						), TableSize, TConfiguration.header.align));
 					}
 
 					#endregion
@@ -93,14 +146,22 @@ namespace TextDataTable
 
 					if (TConfiguration.data != null && TConfiguration.data.Count > 0)
 					{
-						OriginalData = TConfiguration.data; //<- Preserves the Un-Sorted Data.
+						if (TConfiguration.data is Newtonsoft.Json.Linq.JArray)
+						{
+							this.OriginalData = TConfiguration.data.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
+						}
+						else
+						{
+							string ToJSON = Newtonsoft.Json.JsonConvert.SerializeObject(TConfiguration.data);
+							this.OriginalData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(ToJSON);
+						}
 
 						if (TConfiguration.sorting != null && TConfiguration.sorting.enabled)
 						{
 							if (TConfiguration.sorting.fields != null && TConfiguration.sorting.fields.Count > 0)
 							{
-								SortedData = DynamicSorting(TConfiguration.data, TConfiguration.sorting.fields);
-								TConfiguration.data = SortedData; //<- Sets the Data To Show
+								this.SortedData = DynamicSorting(TConfiguration.data, TConfiguration.sorting.fields);
+								this.TConfiguration.data = SortedData; //<- Sets the Data To Show
 							}
 						}
 					}
@@ -109,8 +170,7 @@ namespace TextDataTable
 					#endregion
 
 					#region Data Grouping
-
-					List<int> ColunmPositions = new List<int>(); //<- The Left position (in characters) for each Column.
+					
 					List<string> GroupColumnHeaders = null; //<- Used only when  'repeat_column_headers' is false.
 
 					if (TConfiguration.data != null && TConfiguration.data.Count > 0)
@@ -120,25 +180,25 @@ namespace TextDataTable
 							if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
 							{
 								//1. Group the Data:
-								GroupedData = DynamicGrouping(TConfiguration.data, TConfiguration.grouping.fields);
+								this.GroupedData = DynamicGrouping(TConfiguration.data, TConfiguration.grouping.fields);
 
 								//2. Build the Groups and their components:
 								if (GroupedData != null && GroupedData.Count > 0)
 								{
 									bool repeat_column_headers = TConfiguration.grouping.repeat_column_headers;
-									bool hide_group_columns = TConfiguration.grouping.hide_group_columns; //<- TODO: not used yet.
 									bool show_summary = TConfiguration.grouping.show_summary;
+									bool show_Count = TConfiguration.grouping.show_count;
 
 									foreach (var Group in GroupedData)
 									{
-										ColumnSize = (int)Group.column.length + (Margin * 2);
+										//ColumnSize = (int)Group.columns[0].length + (Margin * 2);
+										ColumnSize = (int)Group.HeaderData.Length + (Margin * 2);
 
 										#region Group Header
 
 										Group.Header = new List<string>();
 
-										CellText = AlinearTexto(Group.CellData, ColumnSize);
-										CellText = AlinearTexto(CellText, ColumnSize, Group.column.align);
+										CellText = AlinearTexto(Group.HeaderData, ColumnSize);
 
 										//Linea Superior:
 										Group.Header.Add(string.Format("{0}{1}{2}",
@@ -148,10 +208,11 @@ namespace TextDataTable
 										));
 
 										//Lineas Laterales y Texto:
-										Group.Header.Add(string.Format("{0}{1}{2}",
+										Group.Header.Add(string.Format("{0}{1}{2} {3}",
 											Borders.Sides.Left,
 											CellText,
-											Borders.Sides.Right
+											Borders.Sides.Right,
+											(show_Count) ? string.Format(TConfiguration.grouping.CountFormat, Group.Count) : string.Empty
 										));
 
 										//Linea Inferior:
@@ -477,7 +538,7 @@ namespace TextDataTable
 					//Si los datos fueron Agrupados, mostrar los Grupos:
 					if (GroupedData != null && GroupedData.Count > 0)
 					{
-						#region Grouped Table
+						#region Grouped Data
 
 						//Dibujar los Encabezados al Principio de los Grupos:
 						if (TConfiguration.grouping.repeat_column_headers == false)
@@ -505,6 +566,7 @@ namespace TextDataTable
 								{
 									Lines.AppendLine(linea);
 								}
+								TableSize = group.Body[group.Body.Count - 1].Length;
 							}
 							if (group.Footer != null && group.Footer.Count > 0)
 							{
@@ -738,7 +800,10 @@ namespace TextDataTable
 										CellText = AlinearTexto(CellText, ColumnSize, _Column.align);
 									}
 
-									ColunmPositions.Add(Cell_Top.Length);
+									if (ColunmPositions.Count < TConfiguration.columns.Count)
+									{
+										ColunmPositions.Add(Cell_Top.Length);
+									}
 
 									//Linea Superior:
 									Cell_Top += string.Format("{0}{1}",
@@ -777,6 +842,8 @@ namespace TextDataTable
 							Cell_Bottom = Cell_Bottom.Substring(0, Cell_Bottom.Length - 1);
 							Cell_Bottom += Convert.ToString(Borders.Bottom.Right);
 							Lines.AppendLine(Cell_Bottom);
+
+							TableSize = Cell_Bottom.Length;
 						}
 						else
 						{
@@ -948,30 +1015,33 @@ namespace TextDataTable
 						ColumnSize = TConfiguration.footer.length + (Margin * 2);
 
 						//Linea Superior:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Top.Left.ToString(),
-							new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
-							Borders.Top.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Top.Left.ToString(),
+								new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
+								Borders.Top.Right.ToString()
+						), TableSize, TConfiguration.footer.align));
 
 						//Lineas Laterales y Texto:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Sides.Left.ToString(),
-							AlinearTexto(CellText, ColumnSize),
-							Borders.Sides.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Sides.Left.ToString(),
+								AlinearTexto(CellText, ColumnSize),
+								Borders.Sides.Right.ToString()
+						), TableSize, TConfiguration.footer.align));
 
 						//Linea Inferior:
-						Lines.AppendLine(string.Format("{0}{1}{2}",
-							Borders.Bottom.Left.ToString(),
-							new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
-							Borders.Bottom.Right.ToString()
-						));
+						Lines.AppendLine(AlinearTexto(
+							string.Format("{0}{1}{2}",
+								Borders.Bottom.Left.ToString(),
+								new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
+								Borders.Bottom.Right.ToString()
+						), TableSize, TConfiguration.footer.align));
 					}
 
 					#endregion
 
-					_ret = Lines.ToString();
+					_ret = Lines.ToString();					
 				}
 			}
 			catch (Exception ex)
@@ -1255,35 +1325,38 @@ namespace TextDataTable
 			return image;
 		}
 
-		/// <summary>Loads the JSON Configuration File.</summary>
-		public void LoadConfiguration()
+
+		public List<dynamic> FilterData(List<dynamic> Criteria)
 		{
+			List<dynamic> _ret = null;
 			try
 			{
-				if (ConfigJsonFile != null && ConfigJsonFile != string.Empty)
+				if (this.OriginalData != null && this.OriginalData.Count > 0)
 				{
-					if (File.Exists(ConfigJsonFile))
-					{
-						using (TextReader reader = new StreamReader(ConfigJsonFile))
-						{
-							var fileContents = reader.ReadToEnd(); reader.Close();
-							TConfiguration = Newtonsoft.Json.JsonConvert.DeserializeObject<TableConfiguration>(fileContents);
-						}
-					}
-					else
-					{
-						MessageBox.Show("Configuration File Not Found.", "TextDataTable - ERROR 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
-					}
+
+
+					var Filter = this.OriginalData.
+						Where(DR =>
+
+							Expression.Equal(Expression.MemberBind( GetPropertyX(DR, Criteria[0].field) ), Expression.Constant(Criteria[0].value))
+
+						).ToList();
+
+					//Expression.Equal(GetPropertyValueX(DR, Criteria[0].field), Criteria[0].value)
+
+					//GetPropertyValueX(DR, Criteria[0].field) == Criteria[0].value &&
+
 				}
 				else
 				{
-					MessageBox.Show("Configuration File Not Found.", "TextDataTable - ERROR 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					throw new Exception("Eror 404 - No Data.");
 				}
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(ex.Message + ex.StackTrace, "TextDataTable - ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
+			return _ret;
 		}
 
 		#endregion
@@ -1664,19 +1737,15 @@ namespace TextDataTable
 					List<dynamic> DataInput = null;
 					bool IsDynamicObject = (Input is System.Dynamic.IDynamicMetaObjectProvider);
 
-					//Convierte 'Newtonsoft.Json.Linq.JArray' a 'List<dynamic>':  Newtonsoft.Json.Linq.JObject
+					//Convierte 'Newtonsoft.Json.Linq.JArray' a 'List<dynamic>':
 					if (Input is Newtonsoft.Json.Linq.JArray)
 					{
-						DataInput = TConfiguration.data.ToObject<List<dynamic>>();
+						DataInput = Input.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
 					}
 					else
 					{
-						//Convierte un Array de Objetos estaticos en un Array de Objetos Dynamicos:
-						DataInput = new List<dynamic>();
-						foreach (var _Data in Input)
-						{
-							DataInput.Add((dynamic)_Data);
-						}
+						string ToJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Input);
+						DataInput = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(ToJSON);
 					}
 
 					if (DataInput != null && DataInput.Count > 0)
@@ -1800,63 +1869,215 @@ namespace TextDataTable
 			List<GroupData> _ret = null;
 			try
 			{
-				//0. Convert the Data into a Dynamic List:
+				//0. Convert the Data into a Dynamic List, because this method is designed for Anonymous data (dynamic).
+				bool IsDynamicObject = (Input is System.Dynamic.IDynamicMetaObjectProvider);
 				List<dynamic> DataSorted = new List<dynamic>();
-				foreach (var _Data in Input)
+
+				if (IsDynamicObject)
 				{
-					DataSorted.Add((dynamic)_Data);
+					DataSorted = new List<dynamic>(Input);
+				}
+				else
+				{
+					string ToJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Input);
+					DataSorted = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(ToJSON);
+					//DataSorted = DataSorted.ToObject<List<dynamic>>();
 				}
 
 				if (DataSorted != null && DataSorted.Count > 0)
 				{
+					List<Column> Columns = new List<Column>();
 					_ret = new List<GroupData>();
+					dynamic Uniques = null;
 
-					//Get the Column Definition:
-					var ColumnInfo = TConfiguration.columns.Find(x => x.field == SortingFields[0]);
+					//Get the Columns Definitions:					
+					foreach (string _Col in SortingFields)
+					{
+						Columns.Add(TConfiguration.columns.Find(x => x.field == _Col));
+					}
 
-					//1. Get Unique Values for each Group Field: (Trae solo los valores del Campo Agrupado)	
-					//var Uniques = DataSorted.GroupBy(x => GetPropertyValueX(x, SortingFields[0]) ).ToList();
-
-					//Trae Registros Unicos con Todos los Campos:
-					var Uniques = DataSorted.GroupBy(x => 
-						GetPropertyValueX(x, SortingFields[0])
-					).Select(g => g.First()).ToList();
-
-
-
-
-
-					//var Uniques2 = DataSorted.GroupBy(x => new { x.Column1, x.Column2 }).ToList();
-
-					//var Uniques2 = DataSorted.GroupBy(x => new {
-					//	x.Column1,
-					//	x.Column2
-					//}).ToList();
-
-					//var Uniques2 = DataSorted.GroupBy(x => [
-					//	GetPropertyValue(x, Field),
-					//	GetPropertyValue(x, Field)
-					//]);
-
-					//var propA = System.ComponentModel.TypeDescriptor.
-					//					GetProperties((object)a).
-					//					Find(Field, true);
+					//1. Get Unique Values for each Group Field:  
+					if (SortingFields.Count == 1)
+					{
+						var grouping = from s in DataSorted
+									   group s by new
+									   {
+										   filter1 = GetPropertyValueX(s, SortingFields[0])
+									   } into GR
+									   select new
+									   {
+										   Group = GR.First(),
+										   Count = GR.Count(),
+										   Filter1 = GR.Key.filter1.Parent,
+									   };
+						Uniques = grouping.ToList();
+						
+					}
+					if (SortingFields.Count == 2)
+					{
+						var grouping = from s in DataSorted
+									   group s by new
+									   {
+										   filter1 = GetPropertyValueX(s, SortingFields[0]),
+										   filter2 = GetPropertyValueX(s, SortingFields[1])
+									   } into GR
+									   select new
+									   {
+										   Group = GR.First(),
+										   Count = GR.Count(),
+										   Filter1 = GR.Key.filter1.Parent,
+										   Filter2 = GR.Key.filter2.Parent,
+									   };
+						Uniques = grouping.ToList();
+					}
+					if (SortingFields.Count == 3)
+					{
+						var grouping = from s in DataSorted
+									   group s by new
+									   {
+										   filter1 = GetPropertyValueX(s, SortingFields[0]),
+										   filter2 = GetPropertyValueX(s, SortingFields[1]),
+										   filter3 = GetPropertyValueX(s, SortingFields[2])
+									   } into GR
+									   select new
+									   {
+										   Group = GR.First(),
+										   Count = GR.Count(),
+										   Filter1 = GR.Key.filter1.Parent,
+										   Filter2 = GR.Key.filter2.Parent,
+										   Filter3 = GR.Key.filter3.Parent
+									   };
+						Uniques = grouping.ToList();
+					}
+					if (SortingFields.Count == 4)
+					{
+						var grouping = from s in DataSorted
+									   group s by new
+									   {
+										   filter1 = GetPropertyValueX(s, SortingFields[0]),
+										   filter2 = GetPropertyValueX(s, SortingFields[1]),
+										   filter3 = GetPropertyValueX(s, SortingFields[2]),
+										   filter4 = GetPropertyValueX(s, SortingFields[3])
+									   } into GR
+									   select new
+									   {
+										   Group = GR.First(),
+										   Count = GR.Count(),
+										   Filter1 = GR.Key.filter1.Parent,
+										   Filter2 = GR.Key.filter2.Parent,
+										   Filter3 = GR.Key.filter3.Parent,
+										   Filter4 = GR.Key.filter4.Parent
+									   };
+						Uniques = grouping.ToList();
+					}
 
 					if (Uniques != null)
 					{
-						foreach (var item in Uniques)
-						{
-							//2. Find all Data having the Unique Value in the Group Field:
-							var Fdata = DataSorted.FindAll(y => GetPropertyValueX(y, SortingFields[0]) == GetPropertyValueX(item, SortingFields[0]));
-							if (Fdata != null)
+						foreach (var Group in Uniques)
+						{							
+							dynamic FilteredData = null;
+
+							if (SortingFields.Count == 1)
 							{
-								//3. Create a new Group with the Data:
-								_ret.Add(new GroupData()
+								//2. Find all Data having the Unique Value in the Group Field:
+								FilteredData = DataSorted.FindAll(y =>
+									GetPropertyValueX(y, SortingFields[0]) == GetPropertyValueX(Group.Group, SortingFields[0])
+								);
+								if (FilteredData != null)
 								{
-									data = Fdata,
-									column = ColumnInfo,
-									CellData = GetPropertyValueX(item, SortingFields[0])
-								});
+									var PropValue_0 = GetPropertyValueX(Group.Group, Columns[0].field);
+
+									//3. Create a new Group with the Data:
+									_ret.Add(new GroupData()
+									{
+										Columns = Columns,
+										data = FilteredData,
+										Count = Group.Count,
+										HeaderData = string.Format("[{0}: {1}]", 
+											Columns[0].title, AplicarFormato(PropValue_0, Columns[0]))
+									});
+								}
+							}
+							if (SortingFields.Count == 2)
+							{
+								FilteredData = DataSorted.FindAll(y =>
+									GetPropertyValueX(y, SortingFields[0]) == GetPropertyValueX(Group.Group, SortingFields[0]) &&
+									GetPropertyValueX(y, SortingFields[1]) == GetPropertyValueX(Group.Group, SortingFields[1])
+								);
+								if (FilteredData != null)
+								{
+									var PropValue_0 = GetPropertyValueX(Group.Group, Columns[0].field);
+									var PropValue_1 = GetPropertyValueX(Group.Group, Columns[1].field);
+
+									//3. Create a new Group with the Data:
+									_ret.Add(new GroupData()
+									{
+										Columns = Columns,
+										data = FilteredData,
+										Count = Group.Count,
+										HeaderData = string.Format("[{0}: {1}], [{2}: {3}]",
+											Columns[0].title, AplicarFormato(PropValue_0, Columns[0]),
+											Columns[1].title, AplicarFormato(PropValue_1, Columns[1])
+										)
+									});
+								}
+							}
+							if (SortingFields.Count == 3)
+							{
+								FilteredData = DataSorted.FindAll(y =>
+									GetPropertyValueX(y, SortingFields[0]) == GetPropertyValueX(Group.Group, SortingFields[0]) &&
+									GetPropertyValueX(y, SortingFields[1]) == GetPropertyValueX(Group.Group, SortingFields[1]) &&
+									GetPropertyValueX(y, SortingFields[2]) == GetPropertyValueX(Group.Group, SortingFields[2])
+								);
+								if (FilteredData != null)
+								{
+									var PropValue_0 = GetPropertyValueX(Group.Group, Columns[0].field);
+									var PropValue_1 = GetPropertyValueX(Group.Group, Columns[1].field);
+									var PropValue_2 = GetPropertyValueX(Group.Group, Columns[2].field);
+
+									//3. Create a new Group with the Data:
+									_ret.Add(new GroupData()
+									{
+										Columns = Columns,
+										data = FilteredData,
+										Count = Group.Count,
+										HeaderData = string.Format("[{0}: {1}], [{2}: {3}], [{4}: {5}]",
+											Columns[0].title, AplicarFormato(PropValue_0, Columns[0]),
+											Columns[1].title, AplicarFormato(PropValue_1, Columns[1]),
+											Columns[2].title, AplicarFormato(PropValue_2, Columns[2])
+										)
+									});
+								}
+							}
+							if (SortingFields.Count == 4)
+							{
+								FilteredData = DataSorted.FindAll(y =>
+									GetPropertyValueX(y, SortingFields[0]) == GetPropertyValueX(Group.Group, SortingFields[0]) &&
+									GetPropertyValueX(y, SortingFields[1]) == GetPropertyValueX(Group.Group, SortingFields[1]) &&
+									GetPropertyValueX(y, SortingFields[2]) == GetPropertyValueX(Group.Group, SortingFields[2]) &&
+									GetPropertyValueX(y, SortingFields[3]) == GetPropertyValueX(Group.Group, SortingFields[3])
+								);
+								if (FilteredData != null)
+								{
+									var PropValue_0 = GetPropertyValueX(Group.Group, Columns[0].field);
+									var PropValue_1 = GetPropertyValueX(Group.Group, Columns[1].field);
+									var PropValue_2 = GetPropertyValueX(Group.Group, Columns[2].field);
+									var PropValue_3 = GetPropertyValueX(Group.Group, Columns[3].field);
+
+									//3. Create a new Group with the Data:
+									_ret.Add(new GroupData()
+									{
+										Columns = Columns,
+										data = FilteredData,
+										Count = Group.Count,
+										HeaderData = string.Format("[{0}: {1}], [{2}: {3}], [{4}: {5}], [{6}: {7}]",
+											Columns[0].title, AplicarFormato(PropValue_0, Columns[0]),
+											Columns[1].title, AplicarFormato(PropValue_1, Columns[1]),
+											Columns[2].title, AplicarFormato(PropValue_2, Columns[2]),
+											Columns[3].title, AplicarFormato(PropValue_3, Columns[3])
+										)
+									});
+								}
 							}
 						}
 					}
@@ -1869,6 +2090,7 @@ namespace TextDataTable
 			return _ret;
 		}
 
+
 		private static object GetPropertyValue(object obj, string propertyName)
 		{
 			return obj.GetType().GetProperty(propertyName).GetValue(obj, null);
@@ -1880,8 +2102,90 @@ namespace TextDataTable
 											Find(propertyName, true).
 											GetValue(obj);
 		}
+		private static object GetPropertyX(object obj, string propertyName)
+		{
+			return System.ComponentModel.TypeDescriptor.
+											GetProperties((object)obj).
+											Find(propertyName, true);
+		}
 
+
+		public Expression GetExpr(dynamic pObject, string pField, object pValue,  string pOperator)
+		{
+			//ParameterExpression param = Expression.Parameter(pObject, "dynamic");
+
+			MemberExpression member = Expression.Property(pObject, pField);
+			ConstantExpression constant = Expression.Constant(pValue);
+
+			return Expression.Equal(GetPropertyX(pObject, pField), constant);
+		}
 		#endregion
+	}
+
+	public static class ExpressionBuilder
+	{
+		public static Expression<Func<T, bool>> GetExpression<T>(IList<DynamicFilter> filters)
+		{
+			if (filters.Count == 0)
+				return null;
+
+			ParameterExpression param = Expression.Parameter(typeof(T), "t");
+			Expression exp = null;
+
+			if (filters.Count == 1)
+			{
+				exp = GetExpression<T>(param, filters[0]);
+			}
+			else if (filters.Count == 2)
+			{
+				exp = GetExpression<T>(param, filters[0], filters[1]);
+			}
+			else
+			{
+				while (filters.Count > 0)
+				{
+					var f1 = filters[0];
+					var f2 = filters[1];
+
+					exp = exp == null
+						? GetExpression<T>(param, filters[0], filters[1])
+						: Expression.AndAlso(exp, GetExpression<T>(param, filters[0], filters[1]));
+
+					filters.Remove(f1);
+					filters.Remove(f2);
+
+					if (filters.Count == 1)
+					{
+						exp = Expression.AndAlso(exp, GetExpression<T>(param, filters[0]));
+						filters.RemoveAt(0);
+					}
+				}
+			}
+
+			return Expression.Lambda<Func<T, bool>>(exp, param);
+		}
+
+		private static Expression GetExpression<T>(ParameterExpression param, DynamicFilter filter)
+		{
+			MemberExpression member = Expression.Property(param, filter.PropertyName);
+			ConstantExpression constant = Expression.Constant(filter.Value);
+
+			return Expression.Equal(member, constant);
+		}
+
+		private static BinaryExpression GetExpression<T>(ParameterExpression param, DynamicFilter filter1, DynamicFilter filter2)
+		{
+			Expression bin1 = GetExpression<T>(param, filter1);
+			Expression bin2 = GetExpression<T>(param, filter2);
+
+			return Expression.AndAlso(bin1, bin2);
+		}
+	}
+
+	public class DynamicFilter
+	{
+		public string PropertyName { get; set; }
+		public object Value { get; set; }
 	}
 
 
