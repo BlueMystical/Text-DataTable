@@ -6,25 +6,29 @@ Autor:          Jhollman Chacon R. (**Blue Mystic**) 2022 (•̀ᴗ•́)و
 Characteristics:
 -------------
 
-- Create Text Table into a Text File.
+- Create Text Table into a Text String.
 - Create Text Table into a PNG Image.
-- 100% JSON Configuration.
+
+- 100% JSON Configuration using 'Json.NET'.
 - Acepts Dynamic Data, you can load any DataSet Objects.
 - Optional Header and Footer Sections.
-- Unlimited Columns.
+- Unlimited Columns (fields) ad Rows.
+
 - Supported Data Types: int, long, decimal, DateTime, string, boolean, Calculated.
 - Supports Calculated Fields, Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX, CONCAT.
-- Optional Summary Fields. Agregate Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX.
-- Supports Field Sorting by Multiple Columns (up to 4) Ascending and Descending.
-- Supports Field Grouping. 
+- Supports Summary Fields. Agregate Functions: COUNT, SUM, AVG, FIRST, LAST, MIN, MAX.
+- Supports Data Sorting (by Up to 4 Fields) Ascending and Descending.
+- Supports Data Grouping (by Up to 4 Fields). 
+- Supports Data Filtering using JSONPath Expressions or thru a custom Filter.
 - Supports Cell Data Formatting: (https://docs.microsoft.com/en-us/dotnet/standard/base-types/formatting-types)
 
 Requeriments:
 -------------
 
-- .NET Framework 4.52 or Superior
-- Visual Studio 2017 or Superior
-- Most use a Monospaced Font: Cascadia Code, Cascadia Mono, Consolas, Courier New, Lucida Sans Typewriter.
+- Microsoft .NET Framework 4.52 or Superior.
+- Visual Studio 2017 or Superior with C# 7.0 or Superior.
+- Reference to 'Json.NET' https://www.newtonsoft.com/json
+- A Monospaced Font: Cascadia Code, Cascadia Mono, Consolas, Courier New, Lucida Sans Typewriter.
 
 Licence
 -------------
