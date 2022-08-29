@@ -38,6 +38,6 @@ Output:
 -------------
 You can try the Pre-compiled EXE in the bin\Debug folder.
 <a href="https://ibb.co/YyRmr8h" target="_blank"><img src="https://i.ibb.co/qWyKZ9p/Sin-t-tulo.png" alt="Sin-t-tulo" border="0"></a>
-<br />
+<br /><br />
 Data Grouping by 'Scoop' field:<br />
-<a href="https://imgbb.com/" target="_blank"><img src="https://i.ibb.co/8Y6TyDg/2.png" alt="2" border="0"></a>
+<a href="https://ibb.co/xCDMpCb" target="_blank"><img src="https://i.ibb.co/FxKBSx1/Sin-t-tulo.png" alt="Sin-t-tulo" border="0"></a>
