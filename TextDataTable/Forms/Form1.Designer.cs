@@ -31,6 +31,9 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.cmdFilterEditor = new System.Windows.Forms.Button();
+			this.cmdUndoFilter = new System.Windows.Forms.Button();
+			this.cmdDoFilter = new System.Windows.Forms.Button();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label1 = new System.Windows.Forms.Label();
 			this.imgSize_H = new System.Windows.Forms.NumericUpDown();
@@ -40,7 +43,9 @@
 			this.cmdTextTable = new System.Windows.Forms.Button();
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
-			this.button1 = new System.Windows.Forms.Button();
+			this.label3 = new System.Windows.Forms.Label();
+			this.textBox2 = new System.Windows.Forms.TextBox();
+			this.cmdQuickSearch = new System.Windows.Forms.Button();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_H)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_W)).BeginInit();
@@ -61,10 +66,16 @@
 			this.textBox1.Size = new System.Drawing.Size(890, 544);
 			this.textBox1.TabIndex = 0;
 			this.textBox1.Text = resources.GetString("textBox1.Text");
+			this.textBox1.WordWrap = false;
 			// 
 			// panel1
 			// 
-			this.panel1.Controls.Add(this.button1);
+			this.panel1.Controls.Add(this.cmdQuickSearch);
+			this.panel1.Controls.Add(this.textBox2);
+			this.panel1.Controls.Add(this.label3);
+			this.panel1.Controls.Add(this.cmdFilterEditor);
+			this.panel1.Controls.Add(this.cmdUndoFilter);
+			this.panel1.Controls.Add(this.cmdDoFilter);
 			this.panel1.Controls.Add(this.label2);
 			this.panel1.Controls.Add(this.label1);
 			this.panel1.Controls.Add(this.imgSize_H);
@@ -78,10 +89,40 @@
 			this.panel1.Size = new System.Drawing.Size(1230, 39);
 			this.panel1.TabIndex = 1;
 			// 
+			// cmdFilterEditor
+			// 
+			this.cmdFilterEditor.Location = new System.Drawing.Point(448, 9);
+			this.cmdFilterEditor.Name = "cmdFilterEditor";
+			this.cmdFilterEditor.Size = new System.Drawing.Size(75, 23);
+			this.cmdFilterEditor.TabIndex = 9;
+			this.cmdFilterEditor.Text = "Filter Editor";
+			this.cmdFilterEditor.UseVisualStyleBackColor = true;
+			this.cmdFilterEditor.Click += new System.EventHandler(this.cmdFilterEditor_Click);
+			// 
+			// cmdUndoFilter
+			// 
+			this.cmdUndoFilter.Location = new System.Drawing.Point(610, 9);
+			this.cmdUndoFilter.Name = "cmdUndoFilter";
+			this.cmdUndoFilter.Size = new System.Drawing.Size(75, 23);
+			this.cmdUndoFilter.TabIndex = 8;
+			this.cmdUndoFilter.Text = "Cancel Filter";
+			this.cmdUndoFilter.UseVisualStyleBackColor = true;
+			this.cmdUndoFilter.Click += new System.EventHandler(this.cmdUndoFilter_Click);
+			// 
+			// cmdDoFilter
+			// 
+			this.cmdDoFilter.Location = new System.Drawing.Point(529, 9);
+			this.cmdDoFilter.Name = "cmdDoFilter";
+			this.cmdDoFilter.Size = new System.Drawing.Size(75, 23);
+			this.cmdDoFilter.TabIndex = 7;
+			this.cmdDoFilter.Text = "Apply Filter";
+			this.cmdDoFilter.UseVisualStyleBackColor = true;
+			this.cmdDoFilter.Click += new System.EventHandler(this.button1_Click);
+			// 
 			// label2
 			// 
 			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(369, 9);
+			this.label2.Location = new System.Drawing.Point(369, 14);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(12, 13);
 			this.label2.TabIndex = 6;
@@ -90,7 +131,7 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(260, 13);
+			this.label1.Location = new System.Drawing.Point(260, 14);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(50, 13);
 			this.label1.TabIndex = 5;
@@ -98,7 +139,7 @@
 			// 
 			// imgSize_H
 			// 
-			this.imgSize_H.Location = new System.Drawing.Point(382, 9);
+			this.imgSize_H.Location = new System.Drawing.Point(382, 10);
 			this.imgSize_H.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -115,7 +156,7 @@
 			// 
 			// imgSize_W
 			// 
-			this.imgSize_W.Location = new System.Drawing.Point(317, 9);
+			this.imgSize_W.Location = new System.Drawing.Point(317, 10);
 			this.imgSize_W.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -143,7 +184,7 @@
 			// 
 			// cmdImageTable
 			// 
-			this.cmdImageTable.Location = new System.Drawing.Point(132, 8);
+			this.cmdImageTable.Location = new System.Drawing.Point(132, 9);
 			this.cmdImageTable.Name = "cmdImageTable";
 			this.cmdImageTable.Size = new System.Drawing.Size(121, 23);
 			this.cmdImageTable.TabIndex = 1;
@@ -153,7 +194,7 @@
 			// 
 			// cmdTextTable
 			// 
-			this.cmdTextTable.Location = new System.Drawing.Point(13, 8);
+			this.cmdTextTable.Location = new System.Drawing.Point(13, 9);
 			this.cmdTextTable.Name = "cmdTextTable";
 			this.cmdTextTable.Size = new System.Drawing.Size(112, 23);
 			this.cmdTextTable.TabIndex = 0;
@@ -186,15 +227,32 @@
 			this.propertyGrid1.Size = new System.Drawing.Size(336, 544);
 			this.propertyGrid1.TabIndex = 0;
 			// 
-			// button1
+			// label3
 			// 
-			this.button1.Location = new System.Drawing.Point(468, 4);
-			this.button1.Name = "button1";
-			this.button1.Size = new System.Drawing.Size(75, 23);
-			this.button1.TabIndex = 7;
-			this.button1.Text = "button1";
-			this.button1.UseVisualStyleBackColor = true;
-			this.button1.Click += new System.EventHandler(this.button1_Click);
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(692, 14);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(75, 13);
+			this.label3.TabIndex = 10;
+			this.label3.Text = "Quick Search:";
+			// 
+			// textBox2
+			// 
+			this.textBox2.Location = new System.Drawing.Point(766, 10);
+			this.textBox2.Name = "textBox2";
+			this.textBox2.Size = new System.Drawing.Size(147, 20);
+			this.textBox2.TabIndex = 11;
+			this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBox2_KeyPress);
+			// 
+			// cmdQuickSearch
+			// 
+			this.cmdQuickSearch.Location = new System.Drawing.Point(907, 9);
+			this.cmdQuickSearch.Name = "cmdQuickSearch";
+			this.cmdQuickSearch.Size = new System.Drawing.Size(31, 23);
+			this.cmdQuickSearch.TabIndex = 12;
+			this.cmdQuickSearch.Text = "Go";
+			this.cmdQuickSearch.UseVisualStyleBackColor = true;
+			this.cmdQuickSearch.Click += new System.EventHandler(this.cmdQuickSearch_Click);
 			// 
 			// Form1
 			// 
@@ -233,7 +291,12 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.NumericUpDown imgSize_H;
 		private System.Windows.Forms.NumericUpDown imgSize_W;
-		private System.Windows.Forms.Button button1;
+		private System.Windows.Forms.Button cmdDoFilter;
+		private System.Windows.Forms.Button cmdUndoFilter;
+		private System.Windows.Forms.Button cmdFilterEditor;
+		private System.Windows.Forms.Button cmdQuickSearch;
+		private System.Windows.Forms.TextBox textBox2;
+		private System.Windows.Forms.Label label3;
 	}
 }
 

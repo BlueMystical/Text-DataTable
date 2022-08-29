@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-//using System.Linq.Dynamic;
 using System.Text;
 using System.Windows.Forms;
 
@@ -29,14 +28,23 @@ namespace TextDataTable
 
 		public TableConfiguration TConfiguration { get; set; }
 
-		/// <summary>Holds the Un-Sorted, un-grouped Original Data.</summary>
+		/// <summary>Set or Return the Data Shown in the Table.</summary>
+		public dynamic DataSource { get; set; }
+
+		/// <summary>Set or Return the Un-Sorted, un-grouped Original Data.
+		/// <para>Use 'RefreshData()' method to Restore the Shown Data to it's Original.</para>
+		/// <para>Use 'RefreshData(newData)' to set a new DataSet</para></summary>
 		public List<dynamic> OriginalData { get; set; }
 
-		/// <summary>Holds the Data Sorted.</summary>
-		public List<dynamic> SortedData { get; set; }
+		#endregion
+
+		#region Private Fields
 
 		/// <summary>Holds the Data by Groups.</summary>
-		public List<GroupData> GroupedData { get; set; }
+		private List<GroupData> GroupedData { get; set; }
+
+		/// <summary>Temporary holds the Data for Filtering purposes.</summary>
+		private Newtonsoft.Json.Linq.JArray JSonData = null;
 
 		#endregion
 
@@ -55,6 +63,10 @@ namespace TextDataTable
 						{
 							var fileContents = reader.ReadToEnd(); reader.Close();
 							TConfiguration = Newtonsoft.Json.JsonConvert.DeserializeObject<TableConfiguration>(fileContents);
+						}
+						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						{
+							this.RefreshData(TConfiguration.data); //<- This set the DataSource
 						}
 					}
 					else
@@ -90,7 +102,7 @@ namespace TextDataTable
 					List<int> ColunmPositions = new List<int>(); //<- The Left position (in characters) for each Column.
 					int Margin = TConfiguration.properties.table.cell_padding;
 					StringBuilder Lines = new StringBuilder();
-					string CellText = string.Empty;					
+					string CellText = string.Empty;
 					int ColumnSize = 0;
 					int TableSize = 0; //<- Width in Characters of the Table's Body
 
@@ -107,7 +119,7 @@ namespace TextDataTable
 							TableSize += ColumnSize + 1;
 						}
 						TableSize++;
-					}					
+					}
 
 					if (TConfiguration.header != null)
 					{
@@ -144,24 +156,13 @@ namespace TextDataTable
 
 					#region Data Sorting
 
-					if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+					if (DataSource != null && DataSource.Count > 0)
 					{
-						if (TConfiguration.data is Newtonsoft.Json.Linq.JArray)
-						{
-							this.OriginalData = TConfiguration.data.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
-						}
-						else
-						{
-							string ToJSON = Newtonsoft.Json.JsonConvert.SerializeObject(TConfiguration.data);
-							this.OriginalData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(ToJSON);
-						}
-
 						if (TConfiguration.sorting != null && TConfiguration.sorting.enabled)
 						{
 							if (TConfiguration.sorting.fields != null && TConfiguration.sorting.fields.Count > 0)
 							{
-								this.SortedData = DynamicSorting(TConfiguration.data, TConfiguration.sorting.fields);
-								this.TConfiguration.data = SortedData; //<- Sets the Data To Show
+								DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields);
 							}
 						}
 					}
@@ -170,17 +171,17 @@ namespace TextDataTable
 					#endregion
 
 					#region Data Grouping
-					
+
 					List<string> GroupColumnHeaders = null; //<- Used only when  'repeat_column_headers' is false.
 
-					if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+					if (DataSource != null && DataSource.Count > 0)
 					{
 						if (TConfiguration.grouping != null && TConfiguration.grouping.enabled)
 						{
 							if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
 							{
 								//1. Group the Data:
-								this.GroupedData = DynamicGrouping(TConfiguration.data, TConfiguration.grouping.fields);
+								GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields);
 
 								//2. Build the Groups and their components:
 								if (GroupedData != null && GroupedData.Count > 0)
@@ -315,7 +316,7 @@ namespace TextDataTable
 													if (ColunmPositions.Count < TConfiguration.columns.Count)
 													{
 														ColunmPositions.Add(Cell_Top.Length);
-													}													
+													}
 
 													//Linea Superior:
 													Cell_Top += string.Format("{0}{1}",
@@ -532,6 +533,10 @@ namespace TextDataTable
 							}
 						}
 					}
+					else
+					{
+						GroupedData = null;
+					}
 
 					#endregion
 
@@ -581,7 +586,7 @@ namespace TextDataTable
 
 						#region Table Summary
 
-						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						if (DataSource != null && DataSource.Count > 0)
 						{
 							if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
 							{
@@ -601,7 +606,7 @@ namespace TextDataTable
 								Cell_Bottom += Convert.ToString(Borders.Bottom.Right);
 								Lines.AppendLine(Cell_Bottom.Replace(Borders.Bottom.Middle, Borders.Bottom.Border));
 
-								var SummaryData = GetSummaryValues(TConfiguration.summary, TConfiguration.data);
+								var SummaryData = GetSummaryValues(TConfiguration.summary, DataSource);
 
 								int SumaryIndex = 0;
 								foreach (var _Summary in TConfiguration.summary)
@@ -722,9 +727,9 @@ namespace TextDataTable
 					{
 						#region Data Rows						
 
-						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						if (DataSource != null && DataSource.Count > 0)
 						{
-							int DataCount = TConfiguration.data.Count;
+							int DataCount = DataSource.Count;
 							for (int RowIndex = -1; RowIndex < DataCount; RowIndex++)
 							{
 								//La Primera Fila (RowIndex = -1) es el Cabezal
@@ -775,7 +780,7 @@ namespace TextDataTable
 									}
 									else //Fila de Datos:
 									{
-										var RowData = TConfiguration.data[RowIndex];
+										var RowData = DataSource[RowIndex];
 										string FieldName = string.Empty;
 										object FieldValue = null;
 
@@ -847,32 +852,59 @@ namespace TextDataTable
 						}
 						else
 						{
-							#region No Data
+							#region No Data						
 
-							//1. Crea la Caja para el Header:
-							CellText = "No Data.";
-							ColumnSize = CellText.Length + (Margin * 2);
+							//Draw 2 Rows: 1st with the Column Headers and 2nd one Empty:
+							for (int RowIndex = 0; RowIndex < 2; RowIndex++)
+							{
+								string Cell_Top = string.Empty;
+								string Cell_Mid = string.Empty;
+								string Cell_Down = string.Empty;
+								int ColumnIndex = 0;
 
-							//Linea Superior:
-							Lines.AppendLine(string.Format("{0}{1}{2}",
-								Borders.Top.Left.ToString(),
-								new string(Borders.Top.Border, ColumnSize),
-								Borders.Top.Right.ToString()
-							));
+								foreach (var _Column in TConfiguration.columns)
+								{
+									ColumnSize = (int)_Column.length + (Margin * 2);
+									CellText = (RowIndex == 0) ? AlinearTexto(_Column.title, ColumnSize) : new string(' ', ColumnSize);
 
-							//Lineas Laterales y Texto:
-							Lines.AppendLine(string.Format("{0}{1}{2}",
-								Borders.Sides.Left.ToString(),
-								AlinearTexto(CellText, ColumnSize),
-								Borders.Sides.Right.ToString()
-							));
+									//Linea Superior:
+									Cell_Top += string.Format("{0}{1}",
+										(RowIndex == 0) ?
+											(ColumnIndex == 0 ? Borders.Top.Left : Borders.Top.Middle) :
+											(ColumnIndex == 0 ? Borders.Middle.Left : Borders.Middle.Middle),
+										new string(Borders.Top.Border, ColumnSize)
+									);
+									//Lineas Laterales y Texto:
+									Cell_Mid += string.Format("{0}{1}",
+										Borders.Sides.Left,
+										CellText
+									);
+									//Linea Inferior:
+									Cell_Down += string.Format("{0}{1}",
+										(RowIndex == 0) ?
+											(ColumnIndex == 0 ? Borders.Middle.Left : Borders.Middle.Middle) :
+											(ColumnIndex == 0 ? Borders.Bottom.Left : Borders.Bottom.Middle),
+										new string(Borders.Top.Border, ColumnSize)
+									);
 
-							//Linea Inferior:
-							Lines.AppendLine(string.Format("{0}{1}{2}",
-								Borders.Bottom.Left.ToString(),
-								new string(Borders.Bottom.Border, ColumnSize),
-								Borders.Bottom.Right.ToString()
-							));
+									//si es la ultima columna, agrega el Borde:
+									if (ColumnIndex >= TConfiguration.columns.Count - 1)
+									{
+										Cell_Top += (RowIndex == 0) ? Borders.Top.Right : Borders.Middle.Right;
+										Cell_Mid += Convert.ToString(Borders.Middle.Border);
+										Cell_Down += Convert.ToString(Borders.Bottom.Right);
+									}
+
+									ColumnIndex++;
+								}
+
+								Lines.AppendLine(Cell_Top);
+								Lines.AppendLine(Cell_Mid);
+								if (RowIndex > 0)
+								{
+									Lines.AppendLine(Cell_Down);
+								}
+							}
 
 							#endregion
 						}
@@ -881,7 +913,7 @@ namespace TextDataTable
 
 						#region Summary
 
-						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						if (DataSource != null && DataSource.Count > 0)
 						{
 							if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
 							{
@@ -889,7 +921,7 @@ namespace TextDataTable
 								string Cell_Mid = string.Empty;
 								string Cell_Bot = string.Empty;
 
-								var SummaryData = GetSummaryValues(TConfiguration.summary, TConfiguration.data);
+								var SummaryData = GetSummaryValues(TConfiguration.summary, DataSource);
 
 								int SumaryIndex = 0;
 								foreach (var _Summary in TConfiguration.summary)
@@ -1041,7 +1073,7 @@ namespace TextDataTable
 
 					#endregion
 
-					_ret = Lines.ToString();					
+					_ret = Lines.ToString();
 				}
 			}
 			catch (Exception ex)
@@ -1113,7 +1145,7 @@ namespace TextDataTable
 
 						#region Data Rows
 
-						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						if (DataSource != null && DataSource.Count > 0)
 						{
 							BackgroundBrush = new SolidBrush(BackgroundColor);
 							TextBrush = new SolidBrush(StringToColor(TConfiguration.properties.table.forecolor_argb));
@@ -1147,7 +1179,7 @@ namespace TextDataTable
 
 								#region 2. The Rows with Data:
 
-								foreach (var _RowData in TConfiguration.data)
+								foreach (var _RowData in DataSource)
 								{
 									//Obtiene el Valor de la Celda:	
 									string FieldName = string.Empty;
@@ -1210,11 +1242,11 @@ namespace TextDataTable
 
 						#region Summary
 
-						if (TConfiguration.data != null && TConfiguration.data.Count > 0)
+						if (DataSource != null && DataSource.Count > 0)
 						{
 							if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
 							{
-								List<decimal> SummaryData = GetSummaryValues(TConfiguration.summary, TConfiguration.data);
+								List<decimal> SummaryData = GetSummaryValues(TConfiguration.summary, DataSource);
 
 								int SumaryIndex = 0;
 								foreach (var _Summary in TConfiguration.summary)
@@ -1325,31 +1357,86 @@ namespace TextDataTable
 			return image;
 		}
 
-
-		public List<dynamic> FilterData(List<dynamic> Criteria)
+		/// <summary>Filters the data using JSONPath expressions.</summary>
+		/// <param name="Criteria">JSONPath expression to Filter the data.</param>
+		/// <param name="Apply">If true, the Filtered data becomes the Data to show on the Table. Need to call the 'Build' table method.</param>
+		public List<dynamic> FilterData(string Criteria, bool Apply = false)
 		{
 			List<dynamic> _ret = null;
 			try
 			{
-				if (this.OriginalData != null && this.OriginalData.Count > 0)
+				if (Criteria != null && Criteria != string.Empty)
 				{
+				/* WE ARE USING 'JSONPath' TO DO THE FILTERING because i was unable to make it work with Linq */
+				//https://www.newtonsoft.com/json/help/html/SelectToken.htm
+				//https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm
+				//https://www.newtonsoft.com/json/help/html/QueryingLINQtoJSON.htm
 
+					  //https://goessner.net/articles/JsonPath/
+					  //https://docs.hevodata.com/sources/streaming/rest-api/writing-jsonpath-expressions/
+					  //https://docs.mashery.com/connectorsguide/GUID-751D8687-F803-460A-BC76-67A37779BE7A.html
+					  //https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-01.html
+					  //http://jsonpath.com/
 
-					var Filter = this.OriginalData.
-						Where(DR =>
+					//Examples:
+					//$[?(@.system_name == 'HR 1201')]
+					//$[?(@.scoop != false)]
+					//$[?(@.jumps >= 2)]
+					//$[?(@.startDate >= '2022-01-30T00:00:00-03:00')]		//<- DateTime Comparations
 
-							Expression.Equal(Expression.MemberBind( GetPropertyX(DR, Criteria[0].field) ), Expression.Constant(Criteria[0].value))
+					//$[?(@.system_name == 'HR 1201' && @.scoop == false)]  //<-- AND
+					//$[?(@.system_name == 'HR 1201' || @.scoop == false)]  //<-- OR
 
-						).ToList();
+					//$[?(@.system_name =~ /.*1568/i )]	//<- matches all who END with '*1568' (case-insensitive).
+					//$[?(@.system_name =~ /GCR.*/i )]	//<- matches all who START with 'GCR' (case-insensitive).
+					//$[?(@.system_name =~ /.*ven.*/i )] //<- matches all who CONTAINS 'VEN'   (case-insensitive).
 
-					//Expression.Equal(GetPropertyValueX(DR, Criteria[0].field), Criteria[0].value)
+					if (OriginalData != null && OriginalData.Count > 0)
+					{
+						//1. Convert the Data into a JSon Array (JArray):
+						if (JSonData == null)
+						{
+							JSonData = Newtonsoft.Json.Linq.JArray.FromObject(
+								Newtonsoft.Json.JsonConvert.DeserializeObject(
+									Newtonsoft.Json.JsonConvert.SerializeObject(OriginalData)
+								)
+							);
+						}
 
-					//GetPropertyValueX(DR, Criteria[0].field) == Criteria[0].value &&
+						//2. Use a JsonPath to get the data filtered:
+						IEnumerable<Newtonsoft.Json.Linq.JToken> JSONPath_Results = JSonData.SelectTokens(Criteria);
+						var FilteredData = JSONPath_Results.ToList();
 
-				}
-				else
-				{
-					throw new Exception("Eror 404 - No Data.");
+						//3. Convert the Filtered Data into a List of Dynamic Objects:
+						if (FilteredData != null && FilteredData.Count > 0)
+						{
+							_ret = new List<dynamic>();
+							foreach (Newtonsoft.Json.Linq.JToken item in FilteredData.ToList())
+							{
+								_ret.Add(item.ToObject<dynamic>());
+							}
+
+							//If true, the Filtered data becomes the Data to show on the Table
+							//Need to call the 'Build_Table..' method to actually draw the Table.
+							if (Apply)
+							{
+								DataSource = _ret;
+							}
+						}
+						else
+						{
+							//No Data Found for the Filter, Returns an Empty (not Null) List:
+							_ret = new List<dynamic>();
+							if (Apply)
+							{
+								DataSource = _ret;
+							}
+						}
+					}
+					else
+					{
+						throw new Exception("Eror 404 - No Data Loaded on the Table.");
+					}
 				}
 			}
 			catch (Exception ex)
@@ -1359,9 +1446,303 @@ namespace TextDataTable
 			return _ret;
 		}
 
+		/// <summary>Filters the data using JSONPath expressions.</summary>
+		/// <param name="Criteria">Expressions to Filter the data.</param>
+		/// <param name="Apply">If true, the Filtered data becomes the Data to show on the Table. Need to call the 'Build' table method.</param>
+		public List<dynamic> FilterData(List<FilterCriteria> Criteria, bool Apply = false)
+		{
+			List<dynamic> _ret = null;
+			try
+			{
+				//Crea una Expression JSONPath:
+				if (Criteria != null && Criteria.Count > 0)
+				{
+					string Expresion = string.Empty;
+					foreach (var Filter in Criteria)
+					{
+						Expresion += Filter.ToString();
+					}
+
+					Expresion = string.Format("$[?({0})]", Expresion);
+
+					_ret = FilterData(Expresion, Apply);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
+
+		/// <summary>Do a quick Text Search on all fields (up to 10) querying for the Search String.</summary>
+		/// <param name="pSearchString">Text to query for. Culture Invariant Case Insensitive.</param>
+		/// <param name="Apply">If true, the Filtered data becomes the Data to show on the Table. Need to call the 'Build' table method.</param>
+		public List<dynamic> QuickSearch(string pSearchString, bool Apply = false)
+		{
+			List<dynamic> _ret = null;
+			try
+			{
+				if (pSearchString != null && pSearchString != string.Empty)
+				{
+					if (OriginalData != null && OriginalData.Count > 0)
+					{
+						//1. Convert the Data into a JSon Array (JArray):
+						if (JSonData == null)
+						{
+							JSonData = Newtonsoft.Json.Linq.JArray.FromObject(
+								Newtonsoft.Json.JsonConvert.DeserializeObject(
+									Newtonsoft.Json.JsonConvert.SerializeObject(OriginalData)
+								)
+							);
+						}
+
+						var Results = from DataRow in JSonData select DataRow;
+
+						//var predicate = PredicateBuilder.JToken<Newtonsoft.Json.Linq.JToken>();
+						//foreach (var _Column in TConfiguration.columns)
+						//{
+						//	predicate = predicate.Or(p => p[_Column.field].Contains(pSearchString) == true);
+						//}
+						//var FData = JSonData.Children().Where(predicate);
+						//Expression<Func<Newtonsoft.Json.Linq.JToken, bool>>  predicate = JSonData.Children().ContainsStrings(pSearchString);
+						//var FData = JSonData.Children().Where(JSonData.Children().ContainsStrings(pSearchString));
+
+						#region Expression Builder
+
+						/* I could not make an Expression builder for dynamic data, therefore... this: */
+
+						switch (TConfiguration.columns.Count)
+						{
+							case 1:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString)
+										  select DataRow;
+								break;
+							case 2:
+								Results = from DataRow in JSonData
+										  where
+										  CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+										  CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString)
+										  select DataRow;
+								break;
+							case 3:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString)
+										  select DataRow;
+								break;
+							case 4:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString)
+										  select DataRow;
+								break;
+							case 5:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString)
+										  select DataRow;
+								break;
+							case 6:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString)
+										  select DataRow;
+								break;
+							case 7:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString)
+										  select DataRow;
+								break;
+							case 8:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString)
+										  select DataRow;
+								break;
+							case 9:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[8].field], pSearchString)
+										  select DataRow;
+								break;
+
+							default: //Searching is limited to the first 10 columns:
+								Results = from DataRow in JSonData
+										  where
+											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[8].field], pSearchString) ||
+											CompareStrings(DataRow[TConfiguration.columns[9].field], pSearchString)
+										  select DataRow;
+								break;
+						}
+
+						#endregion
+
+						List<Newtonsoft.Json.Linq.JToken> FilteredData = Results.ToList();
+
+						//3. Convert the Filtered Data into a List of Dynamic Objects:
+						if (FilteredData != null && FilteredData.Count > 0)
+						{
+							_ret = new List<dynamic>();
+							foreach (Newtonsoft.Json.Linq.JToken item in FilteredData.ToList())
+							{
+								_ret.Add(item.ToObject<dynamic>());
+							}
+
+							//If true, the Filtered data becomes the Data to show on the Table
+							//Need to call the 'Build_Table..' method to actually draw the Table.
+							if (Apply) DataSource = _ret;
+						}
+						else
+						{
+							//No Data Found for the Filter, Returns an Empty (not Null) List:
+							_ret = new List<dynamic>();
+							if (Apply) DataSource = _ret;
+						}
+					}
+					else
+					{
+						throw new Exception("Eror 404 - No Data Loaded on the Table.");
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
+
+		/// <summary>Updates the Shown Data using the Original Data.</summary>
+		public void RefreshData()
+		{
+			try
+			{
+				if (OriginalData != null && OriginalData.Count > 0)
+				{
+					DataSource = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(
+									  Newtonsoft.Json.JsonConvert.SerializeObject(OriginalData)
+								);
+				}
+			}
+			catch (Exception ex) { throw ex; }
+		}
+
+		/// <summary>Updates the Shown Data using a new DataSet, this new data becomes the Original Data now.</summary>
+		/// <param name="pNewData">New DataSource</param>
+		public void RefreshData(dynamic pNewData)
+		{
+			try
+			{
+				if (pNewData != null)
+				{
+					//Convierte 'Newtonsoft.Json.Linq.JArray' a 'List<dynamic>':
+					if (pNewData is Newtonsoft.Json.Linq.JArray)
+					{
+						OriginalData = pNewData.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
+					}
+					else
+					{
+						OriginalData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(
+											Newtonsoft.Json.JsonConvert.SerializeObject(pNewData)
+										);
+					}
+				}
+
+				//Updates the Shown DataSet with new data:
+				if (OriginalData != null && OriginalData.Count > 0)
+				{
+					DataSource = OriginalData;
+
+					JSonData = Newtonsoft.Json.Linq.JArray.FromObject(
+									Newtonsoft.Json.JsonConvert.DeserializeObject(
+										Newtonsoft.Json.JsonConvert.SerializeObject(OriginalData)
+									)
+					);
+				}
+			}
+			catch (Exception ex) { throw ex; }
+		}
+
 		#endregion
 
+	
+
 		#region Utility Methods
+
+		/// <summary>Returns 'true' if SearchString Contains pValue.
+		/// <para>Culture Invariant Case Insensitive.</para> </summary>
+		/// <param name="pValue"></param>
+		/// <param name="pSearchString"></param>
+		private bool CompareStrings(object pValue, string pSearchString)
+		{
+			bool _ret = false;
+			if (pSearchString != null)
+			{
+				_ret = System.Globalization.CultureInfo.InvariantCulture.
+					CompareInfo.IndexOf(
+						GetStringValue(pValue), pSearchString,
+						System.Globalization.CompareOptions.IgnoreCase
+				) >= 0;
+			}
+			return _ret;
+		}
+		private string GetStringValue(object pValue)
+		{
+			string _ret = string.Empty;
+			if (pValue != null)
+			{
+				_ret = Convert.ToString(pValue);
+			}
+
+			return _ret;
+		}
 
 		/// <summary>Get the Values for the Summary Fields.
 		/// <para>Supported Functions: COUNT, SUM, AVG, MAX, MIN, FIRST, LAST</para> </summary>
@@ -1744,8 +2125,9 @@ namespace TextDataTable
 					}
 					else
 					{
-						string ToJSON = Newtonsoft.Json.JsonConvert.SerializeObject(Input);
-						DataInput = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(ToJSON);
+						DataInput = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(
+									Newtonsoft.Json.JsonConvert.SerializeObject(Input)
+								);
 					}
 
 					if (DataInput != null && DataInput.Count > 0)
@@ -1756,6 +2138,7 @@ namespace TextDataTable
 							System.ComponentModel.PropertyDescriptor propA;
 							System.ComponentModel.PropertyDescriptor propB;
 
+							//1º Field:
 							if (result == 0 && FieldList.Count >= 1)
 							{
 								propA = System.ComponentModel.TypeDescriptor.
@@ -1779,6 +2162,7 @@ namespace TextDataTable
 								}
 							}
 
+							//2º Field:
 							if (result == 0 && FieldList.Count >= 2)
 							{
 								propA = System.ComponentModel.TypeDescriptor.
@@ -1802,6 +2186,7 @@ namespace TextDataTable
 								}
 							}
 
+							//3º Field:
 							if (result == 0 && FieldList.Count >= 3)
 							{
 								propA = System.ComponentModel.TypeDescriptor.
@@ -1825,6 +2210,7 @@ namespace TextDataTable
 								}
 							}
 
+							//4º Field:
 							if (result == 0 && FieldList.Count == 4) //<- Up to 4 Sorting Fields
 							{
 								propA = System.ComponentModel.TypeDescriptor.
@@ -1911,7 +2297,7 @@ namespace TextDataTable
 										   Filter1 = GR.Key.filter1.Parent,
 									   };
 						Uniques = grouping.ToList();
-						
+
 					}
 					if (SortingFields.Count == 2)
 					{
@@ -1974,7 +2360,7 @@ namespace TextDataTable
 					if (Uniques != null)
 					{
 						foreach (var Group in Uniques)
-						{							
+						{
 							dynamic FilteredData = null;
 
 							if (SortingFields.Count == 1)
@@ -1993,7 +2379,7 @@ namespace TextDataTable
 										Columns = Columns,
 										data = FilteredData,
 										Count = Group.Count,
-										HeaderData = string.Format("[{0}: {1}]", 
+										HeaderData = string.Format("[{0}: {1}]",
 											Columns[0].title, AplicarFormato(PropValue_0, Columns[0]))
 									});
 								}
@@ -2109,84 +2495,402 @@ namespace TextDataTable
 											Find(propertyName, true);
 		}
 
-
-		public Expression GetExpr(dynamic pObject, string pField, object pValue,  string pOperator)
+		/// <summary>Do a quick Text Search on all fields querying for the Search String.</summary>
+		/// <param name="pSearchString">Text to query for.</param>
+		private List<dynamic> QuickSearch_Path(string pSearchString)
 		{
-			//ParameterExpression param = Expression.Parameter(pObject, "dynamic");
-
-			MemberExpression member = Expression.Property(pObject, pField);
-			ConstantExpression constant = Expression.Constant(pValue);
-
-			return Expression.Equal(GetPropertyX(pObject, pField), constant);
+			/* DEPRECATED !
+			 * Due this method only works with text fields and JSONPath doesnt give much freedom to custom queries */
+			List<dynamic> _ret = null;
+			try
+			{
+				var Filters = new List<FilterCriteria>();
+				_ret = QuickSearch_Path(pSearchString, out Filters);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
 		}
+		/// <summary>Do a quick Text Search on all fields querying for the Search String.</summary>
+		/// <param name="pSearchString">Text to query for.</param>
+		/// <param name="Filters">Ouputs the builded Filters for the Query.</param>
+		private List<dynamic> QuickSearch_Path(string pSearchString, out List<FilterCriteria> Filters)
+		{
+			/* DEPRECATED !
+			 * Due this method only works with text fields and JSONPath doesnt give much freedom to custom queries */
+			List<dynamic> _ret = null;
+			Filters = new List<FilterCriteria>();
+
+			try
+			{
+				//We need to build a JSONPath with expressions for each field that contains the SearchString,
+				//Something like this:
+				//$[?(@.Field1 =~ /.*blue.*/i || @.Field2 =~ /.*blue.*/i || @.Field3 =~ /.*blue.*/i || @.Field4 =~ /.*blue.*/i || @.ColorField =~ /.*blue.*/i)]
+
+				int Counter = 0;
+				string Expresion = string.Empty;
+
+				foreach (Column field in TConfiguration.columns)
+				{
+					if (field.type != "Calculated")
+					{
+						var Filter = new FilterCriteria(field.field, pSearchString)
+						{
+							isFirst = (Counter == 0),
+							comparator = "CONTAINS",
+							isOR = true
+						};
+						Expresion += Filter.ToString();
+						Filters.Add(Filter);
+						Counter++;
+					}
+				}
+				//Assemble the whole Expression:
+				Expresion = string.Format("$[?({0})]", Expresion);
+
+				//Then Get the Data for it:
+				_ret = FilterData(Expresion, true);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
+
 		#endregion
 	}
 
-	public static class ExpressionBuilder
+	public static class PredicateBuilder
 	{
-		public static Expression<Func<T, bool>> GetExpression<T>(IList<DynamicFilter> filters)
+		//http://www.albahari.com/nutshell/predicatebuilder.aspx
+
+		public static Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> ContainsStrings(this Newtonsoft.Json.Linq.JToken Token, params string[] keywords)
 		{
-			if (filters.Count == 0)
-				return null;
+			var predicate = PredicateBuilder.False<Newtonsoft.Json.Linq.JToken>();
+			foreach (string keyword in keywords)
+				predicate = predicate.Or(p => p.ToString().Contains(keyword));
 
-			ParameterExpression param = Expression.Parameter(typeof(T), "t");
-			Expression exp = null;
+			return predicate;
+		}
+		//public static Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> ContainsStrings(this Newtonsoft.Json.Linq.JEnumerable<Newtonsoft.Json.Linq.JToken> Tokens, string SearString)
+		//{
+		//	var predicate = PredicateBuilder.False<Newtonsoft.Json.Linq.JToken>();
+		//	foreach (var token in Tokens)
+		//	{
+		//		predicate = predicate.OrJ(p => p.Contains(SearString));
+		//	}
 
-			if (filters.Count == 1)
-			{
-				exp = GetExpression<T>(param, filters[0]);
-			}
-			else if (filters.Count == 2)
-			{
-				exp = GetExpression<T>(param, filters[0], filters[1]);
-			}
-			else
-			{
-				while (filters.Count > 0)
-				{
-					var f1 = filters[0];
-					var f2 = filters[1];
+		//	return Tokens.Where(predicate); // predicate;
+		//}
 
-					exp = exp == null
-						? GetExpression<T>(param, filters[0], filters[1])
-						: Expression.AndAlso(exp, GetExpression<T>(param, filters[0], filters[1]));
+		public static Expression<Func<T, bool>> True<T>() { return f => true; }
+		public static Expression<Func<T, bool>> False<T>() { return f => false; }
 
-					filters.Remove(f1);
-					filters.Remove(f2);
-
-					if (filters.Count == 1)
-					{
-						exp = Expression.AndAlso(exp, GetExpression<T>(param, filters[0]));
-						filters.RemoveAt(0);
-					}
-				}
-			}
-
-			return Expression.Lambda<Func<T, bool>>(exp, param);
+		public static Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> JToken<T>() { return f => false; }
+		public static Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> OrJ<T>(this Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> expr1,
+																					 Expression<Func<Newtonsoft.Json.Linq.JToken, bool>> expr2)
+		{
+			var invokedExpr = Expression.Invoke(expr2, expr1.Parameters.Cast<Expression>());
+			return Expression.Lambda<Func<Newtonsoft.Json.Linq.JToken, bool>>
+				  (Expression.OrElse(expr1.Body, invokedExpr), expr1.Parameters);
 		}
 
-		private static Expression GetExpression<T>(ParameterExpression param, DynamicFilter filter)
+		public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> expr1,
+														   Expression<Func<T, bool>> expr2)
 		{
-			MemberExpression member = Expression.Property(param, filter.PropertyName);
-			ConstantExpression constant = Expression.Constant(filter.Value);
-
-			return Expression.Equal(member, constant);
+			var invokedExpr = Expression.Invoke(expr2, expr1.Parameters.Cast<Expression>());
+			return Expression.Lambda<Func<T, bool>>
+				  (Expression.OrElse(expr1.Body, invokedExpr), expr1.Parameters);
 		}
 
-		private static BinaryExpression GetExpression<T>(ParameterExpression param, DynamicFilter filter1, DynamicFilter filter2)
+		public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1,
+															 Expression<Func<T, bool>> expr2)
 		{
-			Expression bin1 = GetExpression<T>(param, filter1);
-			Expression bin2 = GetExpression<T>(param, filter2);
-
-			return Expression.AndAlso(bin1, bin2);
+			var invokedExpr = Expression.Invoke(expr2, expr1.Parameters.Cast<Expression>());
+			return Expression.Lambda<Func<T, bool>>
+				  (Expression.AndAlso(expr1.Body, invokedExpr), expr1.Parameters);
 		}
 	}
 
-	public class DynamicFilter
-	{
-		public string PropertyName { get; set; }
-		public object Value { get; set; }
-	}
+	//public static class ExpressionBuilder
+	//{
+	//	/// <summary>Devuelve 'true' si la cadena es Nula o Vacia.</summary>
+	//	/// <param name="input">Cadena de Texto a Validar</param>
+	//	public static bool IsNullOrEmpty(this String input)
+	//	{
+	//		return !(input != null && input != string.Empty);
+	//	}
+	//	public static bool IsNull(this object input)
+	//	{
+	//		return (input == null);
+	//	}
+
+	//	public static Expression<Func<T, bool>> ToExpression<T>(string andOrOperator, string propName, string opr, string value, Expression<Func<T, bool>> expr = null)
+	//	{
+	//		Expression<Func<T, bool>> func = null;
+	//		try
+	//		{
+	//			ParameterExpression paramExpr = Expression.Parameter(typeof(T));
+	//			var arrProp = propName.Split('.').ToList();
+	//			Expression binExpr = null;
+	//			string partName = string.Empty;
+	//			arrProp.ForEach(x =>
+	//			{
+	//				Expression tempExpr = null;
+	//				partName = partName.IsNull() ? x : partName + "." + x;
+	//				if (partName == propName)
+	//				{
+	//					var member = NestedExprProp(paramExpr, partName);
+	//					var type = member.Type.Name == "Nullable`1" ? Nullable.GetUnderlyingType(member.Type) : member.Type;
+	//					tempExpr = ApplyFilter(opr, member, Expression.Convert(ToExprConstant(type, value), member.Type));
+	//				}
+	//				else
+	//					tempExpr = ApplyFilter("!=", NestedExprProp(paramExpr, partName), Expression.Constant(null));
+	//				if (binExpr != null)
+	//					binExpr = Expression.AndAlso(binExpr, tempExpr);
+	//				else
+	//					binExpr = tempExpr;
+	//			});
+	//			Expression<Func<T, bool>> innerExpr = Expression.Lambda<Func<T, bool>>(binExpr, paramExpr);
+	//			if (expr != null)
+	//				innerExpr = (andOrOperator.IsNull() || andOrOperator == "And" || andOrOperator == "AND" || andOrOperator == "&&") ? innerExpr.And(expr) : innerExpr.Or(expr);
+	//			func = innerExpr;
+	//		}
+	//		catch { }
+	//		return func;
+	//	}
+
+	//	private static MemberExpression NestedExprProp(Expression expr, string propName)
+	//	{
+	//		string[] arrProp = propName.Split('.');
+	//		int arrPropCount = arrProp.Length;
+	//		return (arrPropCount > 1) ? Expression.Property(NestedExprProp(expr, arrProp.Take(arrPropCount - 1).Aggregate((a, i) => a + "." + i)), arrProp[arrPropCount - 1]) : Expression.Property(expr, propName);
+	//	}
+
+	//	private static Expression ToExprConstant(Type prop, string value)
+	//	{
+	//		if (value.IsNull())
+	//			return Expression.Constant(value);
+	//		object val = null;
+	//		switch (prop.FullName)
+	//		{
+	//			case "System.Guid":
+	//				val = new Guid(value);// value.ToGuid();
+	//				break;
+	//			default:
+	//				val = Convert.ChangeType(value, Type.GetType(prop.FullName));
+	//				break;
+	//		}
+	//		return Expression.Constant(val);
+	//	}
+
+	//	private static Expression ApplyFilter(string opr, Expression left, Expression right)
+	//	{
+	//		Expression InnerLambda = null;
+	//		switch (opr)
+	//		{
+	//			case "==":
+	//			case "=":
+	//				InnerLambda = Expression.Equal(left, right);
+	//				break;
+	//			case "<":
+	//				InnerLambda = Expression.LessThan(left, right);
+	//				break;
+	//			case ">":
+	//				InnerLambda = Expression.GreaterThan(left, right);
+	//				break;
+	//			case ">=":
+	//				InnerLambda = Expression.GreaterThanOrEqual(left, right);
+	//				break;
+	//			case "<=":
+	//				InnerLambda = Expression.LessThanOrEqual(left, right);
+	//				break;
+	//			case "!=":
+	//				InnerLambda = Expression.NotEqual(left, right);
+	//				break;
+	//			case "&&":
+	//				InnerLambda = Expression.And(left, right);
+	//				break;
+	//			case "||":
+	//				InnerLambda = Expression.Or(left, right);
+	//				break;
+	//			case "LIKE":
+	//				InnerLambda = Expression.Call(left, typeof(string).GetMethod("Contains", new Type[] { typeof(string) }), right);
+	//				break;
+	//			case "NOTLIKE":
+	//				InnerLambda = Expression.Not(Expression.Call(left, typeof(string).GetMethod("Contains", new Type[] { typeof(string) }), right));
+	//				break;
+	//		}
+	//		return InnerLambda;
+	//	}
+
+	//	public static Expression<Func<T, object>> PropExpr<T>(string PropName)
+	//	{
+	//		ParameterExpression paramExpr = Expression.Parameter(typeof(T));
+	//		var tempExpr = Extentions.NestedExprProp(paramExpr, PropName);
+	//		return Expression.Lambda<Func<T, object>>(Expression.Convert(Expression.Lambda(tempExpr, paramExpr).Body, typeof(object)), paramExpr);
+
+	//	}
+	//	public static IQueryOver<T, T> OrderBy<T>(this IQueryOver<T, T> Collection, string sidx, string sord)
+	//	{
+	//		return sord == "asc" ? Collection.OrderBy(NHibernate.Criterion.Projections.Property(sidx)).Asc : Collection.OrderBy(NHibernate.Criterion.Projections.Property(sidx)).Desc;
+	//	}
+
+	//	public static Expression<Func<T, TResult>> And<T, TResult>(this Expression<Func<T, TResult>> expr1, Expression<Func<T, TResult>> expr2)
+	//	{
+	//		var invokedExpr = Expression.Invoke(expr2, expr1.Parameters.Cast<Expression>());
+	//		return Expression.Lambda<Func<T, TResult>>(Expression.AndAlso(expr1.Body, invokedExpr), expr1.Parameters);
+	//	}
+
+	//	public static Expression<Func<T, bool>> Or<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
+	//	{
+	//		var invokedExpr = Expression.Invoke(expr2, expr1.Parameters.Cast<Expression>());
+	//		return Expression.Lambda<Func<T, bool>>(Expression.OrElse(expr1.Body, invokedExpr), expr1.Parameters);
+	//	}
+	//}
+
+	//IQueryable TextFilter_Untyped(IQueryable source, string term)
+	//{
+	//	if (string.IsNullOrEmpty(term)) { return source; }
+	//	Type elementType = source.ElementType;
+
+	//	// The logic for building the ParameterExpression and the LambdaExpression's body is the same as in the previous example,
+	//	// but has been refactored into the constructBody function.
+	//	(Expression? body, ParameterExpression? prm) = constructBody(elementType, term);
+	//	if (body is null) { return source; }
+
+	//	Expression filteredTree = Call(
+	//		typeof(Queryable),
+	//		"Where",
+	//		new[] { elementType },
+	//		source.Expression,
+	//		Lambda(body, prm!)
+	//	);
+
+	//	return source.Provider.CreateQuery(filteredTree);
+	//}
+
+	//	IQueryable<T> TextFilter<T>(IQueryable<T> source, string term)
+	//	{
+	//		if (string.IsNullOrEmpty(term)) { return source; }
+
+	//		// T is a compile-time placeholder for the element type of the query.
+	//		Type elementType = typeof(T);
+
+	//		// Get all the string properties on this specific type.
+	//		System.Reflection.PropertyInfo[] stringProperties =
+	//			elementType.GetProperties()
+	//				.Where(x => x.PropertyType == typeof(string))
+	//				.ToArray();
+	//		if (!stringProperties.Any()) { return source; }
+
+	//		// Get the right overload of String.Contains
+	//		System.Reflection.MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+
+	//		// Create a parameter for the expression tree:
+	//		// the 'x' in 'x => x.PropertyName.Contains("term")'
+	//		// The type of this parameter is the query's element type
+	//		ParameterExpression prm = Parameter(elementType);
+
+	//		// Map each property to an expression tree node
+	//		IEnumerable<Expression> expressions = stringProperties
+	//			.Select(prp =>
+	//				// For each property, we have to construct an expression tree node like x.PropertyName.Contains("term")
+	//				Call(                  // .Contains(...) 
+	//					Property(          // .PropertyName
+	//						prm,           // x 
+	//						prp
+	//					),
+	//					containsMethod,
+	//					Constant(term)     // "term" 
+	//				)
+	//			);
+
+	//		// Combine all the resultant expression nodes using ||
+	//		Expression body = expressions
+	//			.Aggregate(
+	//				(prev, current) => Or(prev, current)
+	//			);
+
+	//		// Wrap the expression body in a compile-time-typed lambda expression
+	//		Expression<Func<T, bool>> lambda = Lambda<Func<T, bool>>(body, prm);
+
+	//		// Because the lambda is compile-time-typed (albeit with a generic parameter), we can use it with the Where method
+	//		return source.Where(lambda);
+	//	}
+	//}
+
+	//public static class ExpressionBuilder
+	//{
+	//	/* DEPRECATED!
+	//	 * I could not make this to work with Anonymous (dynamic) data sets. */
+	//	public static Expression<Func<T, bool>> GetExpression<T>(IList<DynamicFilter> filters)
+	//	{
+	//		if (filters.Count == 0)
+	//		{
+	//			return null;
+	//		}
+
+	//		ParameterExpression param = Expression.Parameter(typeof(T), "t");
+	//		Expression exp = null;
+
+	//		if (filters.Count == 1)
+	//		{
+	//			exp = GetExpression<T>(param, filters[0]);
+	//		}
+	//		else if (filters.Count == 2)
+	//		{
+	//			exp = GetExpression<T>(param, filters[0], filters[1]);
+	//		}
+	//		else
+	//		{
+	//			while (filters.Count > 0)
+	//			{
+	//				var f1 = filters[0];
+	//				var f2 = filters[1];
+
+	//				exp = exp == null
+	//					? GetExpression<T>(param, filters[0], filters[1])
+	//					: Expression.AndAlso(exp, GetExpression<T>(param, filters[0], filters[1]));
+
+	//				filters.Remove(f1);
+	//				filters.Remove(f2);
+
+	//				if (filters.Count == 1)
+	//				{
+	//					exp = Expression.AndAlso(exp, GetExpression<T>(param, filters[0]));
+	//					filters.RemoveAt(0);
+	//				}
+	//			}
+	//		}
+
+	//		return Expression.Lambda<Func<T, bool>>(exp, param);
+	//	}
+
+	//	private static Expression GetExpression<T>(ParameterExpression param, DynamicFilter filter)
+	//	{
+	//		MemberExpression member = Expression.Property(param, filter.PropertyName);
+	//		ConstantExpression constant = Expression.Constant(filter.Value);
+
+	//		return Expression.Equal(member, constant);
+	//	}
+
+	//	private static BinaryExpression GetExpression<T>(ParameterExpression param, DynamicFilter filter1, DynamicFilter filter2)
+	//	{
+	//		Expression bin1 = GetExpression<T>(param, filter1);
+	//		Expression bin2 = GetExpression<T>(param, filter2);
+
+	//		return Expression.AndAlso(bin1, bin2);
+	//	}
+	//}
+	//public class DynamicFilter
+	//{
+	//	public string PropertyName { get; set; }
+	//	public object Value { get; set; }
+	//}
 
 
 }

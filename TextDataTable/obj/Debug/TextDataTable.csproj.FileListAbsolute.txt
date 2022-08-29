@@ -1,10 +1,11 @@
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\Data\table_config.json
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\TextDataTable.exe.config
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\TextDataTable.exe
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\TextDataTable.pdb
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\Newtonsoft.Json.dll
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\Newtonsoft.Json.pdb
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\Newtonsoft.Json.xml
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.csprojAssemblyReference.cache
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.Forms.DataEditor.resources
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.Form1.resources
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.Properties.Resources.resources
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.csproj.GenerateResource.cache
@@ -12,5 +13,5 @@ D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataT
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.csproj.CopyComplete
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.exe
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.pdb
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\bin\Debug\Data\table_config.json
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.Forms.DataEditor.resources
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.csprojAssemblyReference.cache
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\TextDataTable\obj\Debug\TextDataTable.Forms.FilterEditor.resources

@@ -144,18 +144,23 @@ namespace TextDataTable
 	public class Header
 	{
 		public Header() { }
+		public Header(string Title)
+		{
+			this.title = Title;
+			this.length = Title.Length + 2;
+		}
 
 		[Description("Text for the Title"), Category("Appearance"),
 		DisplayName("Title"), DefaultValue("Example Text")]
 		public string title { get; set; }
 
-		[Description("Width in pixels for the Header/Footer Box, only for ImageTable"), 
-		DisplayName("Width"), DefaultValue(100), Category("Appearance")]
-		public int width { get; set; }
+		[Description("Width in pixels for the Header/Footer Box, only for ImageTable"),
+		DisplayName("Width"), DefaultValue(500), Category("Appearance")]
+		public int width { get; set; } = 500;
 
 		[Description("Width in Characters for the Header/Footer Box, only for TextTable"),
-		DisplayName("Length"), DefaultValue(100), Category("Appearance")]
-		public int length { get; set; }
+		DisplayName("Length"), DefaultValue(50), Category("Appearance")]
+		public int length { get; set; } = 50;
 
 		/// <summary>Text Horizontal Align: [left, center, right] default 'center'</summary>
 		[DisplayName("Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
@@ -163,17 +168,23 @@ namespace TextDataTable
 
 		[Description("Background Color for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Background Color"), DefaultValue("128, 0, 0, 0"), Category("Appearance")]
-		public string backcolor_argb { get; set; }
+		public string backcolor_argb { get; set; } = "128, 0, 0, 0";
 
 		[Description("Text Color for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Foreground Color"), DefaultValue("255,255,255,255"), Category("Appearance")]
-		public string forecolor_argb { get; set; }
+		public string forecolor_argb { get; set; } = "255,255,255,255";
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
 	public class Column
 	{
 		public Column() { }
+		public Column(string Field, string Title)
+		{
+			this.field = Field;
+			this.title = Title;
+		}
+
 
 		/// <summary>[REQUIRED] Display Name for the field Column.</summary>
 		[DisplayName("Title"), Description("Header Text for the Column"), Category("Appearance")]
@@ -212,6 +223,11 @@ namespace TextDataTable
 	public class Summary
 	{
 		public Summary() { }
+		public Summary(string Field, string Agregate)
+		{
+			this.field = Field;
+			this.agregate = Agregate;
+		}
 
 		[DisplayName("Field"), Description("Data Field for the Column"), Category("Appearance")]
 		public string field { get; set; }
@@ -302,6 +318,133 @@ namespace TextDataTable
 		public int Count { get; set; }
 		
 	}
+
+	/// <summary>Returns a JSONPath expression for a Field/value Comparation.</summary>
+	public class FilterCriteria : System.ICloneable
+	{
+		public FilterCriteria() { }
+		public FilterCriteria(string Field, object Value)
+		{
+			this.field = Field;
+			this.value = Value;
+		}
+
+		public string field { get; set; }
+		public object value { get; set; }
+
+		/// <summary>Comparation Operators, between the field and the Value.
+		/// <para>Supported: ==, !=, &lt;, &lt;=, &gt;, &gt;=, START, END, CONTAINS.</para>
+		/// <para>Default: '=='</para></summary>
+		public string comparator { get; set; } = "==";
+		
+
+		/// <summary>Is this an Optional Filter? if so, adds the 'OR' prefix. Default false.</summary>
+		public bool isOR { get; set; } = false;
+
+		/// <summary>Is this an Exclusive Filter? if so, adds the 'AND' prefix. Default true</summary>
+		public bool isAND { get; set; } = true;
+
+		/// <summary>Is this the First Filter? if so, do not adds the prefix. Default false.</summary>
+		public bool isFirst { get; set; } = false;
+
+		/// <summary>Is this Filter Enabled?</summary>
+		public bool enabled { get; set; } = true;
+
+		/// <summary>Returns an expression for the Field/value.</summary>
+		public override string ToString()
+		{
+			if (this.enabled)
+			{
+				string _Prefix = string.Empty;
+				string _COMPARA = string.Empty;
+
+				if (!isFirst)
+				{
+					if (isAND) _Prefix = " && ";
+					if (isOR) _Prefix = " || ";
+				}
+				switch (comparator)
+				{
+					case "START":	_COMPARA = "=~"; break;
+					case "END":		_COMPARA = "=~"; break;
+					case "CONTAINS": _COMPARA = "=~"; break;
+					default:  _COMPARA = comparator; break;
+				}
+				return string.Format("{0}@.{1} {2} {3}", _Prefix, field, _COMPARA, GetValue());
+			}
+			else
+			{
+				return string.Empty;
+			}
+		}
+		/// <summary>Returns an expression for the Field/value.</summary>
+		/// <param name="ShowDisabled">Hide or Show the disabled filters.</param>
+		public string ToString(bool ShowDisabled)
+		{
+			if (ShowDisabled || this.enabled)
+			{
+				string _Prefix = string.Empty;
+				string _COMPARA = string.Empty;
+
+				if (!isFirst)
+				{
+					if (isAND) _Prefix = " && ";
+					if (isOR) _Prefix = " || ";
+				}
+				switch (comparator)
+				{
+					case "START":	_COMPARA = "=~"; break;
+					case "END":		_COMPARA = "=~"; break;
+					case "CONTAINS": _COMPARA = "=~"; break;
+					default:  _COMPARA = comparator; break;
+				}
+
+				return string.Format("{0}@.{1} {2} {3}", _Prefix, field, _COMPARA, GetValue());
+			}
+			else
+			{
+				return string.Empty;
+			}
+		}
+
+		/// <summary>Returns the Value of the Field formatted for use in a JSONPath expression.</summary>
+		private string GetValue()
+		{
+			string _ret = (this.value != null) ? this.value.ToString() : string.Empty;
+
+			switch (this.value.GetType().ToString())
+			{
+				case "System.String":	_ret = string.Format("'{0}'", _ret); break;
+				case "System.Int32":	break;				
+				case "System.Int64":	break;
+				case "System.Decimal":	_ret = _ret.Replace(',', '.'); break;
+				case "System.Double":	_ret = _ret.Replace(',', '.'); break;
+				case "System.DateTime": _ret = string.Format("{0}", Newtonsoft.Json.JsonConvert.SerializeObject(this.value).Replace('"', '\'')); break;
+				case "System.Boolean":	_ret = _ret.ToLower(); break;
+
+				default: _ret = this.value.ToString(); break;
+			}
+
+			switch (comparator)
+			{
+				case "START":	_ret = string.Format(@"/{0}.*/i", this.value.ToString()); break;
+				case "END":		_ret = string.Format(@"/.*{0}/i", this.value.ToString()); break;
+				case "CONTAINS": _ret = string.Format(@"/.*{0}.*/i", this.value.ToString()); break;
+				default:		break;
+			}
+
+			return _ret;
+		}
+
+		/// <summary>Permite Copiar por Valor el Objeto con todas sus propiedades y atributos.</summary>
+		public object Clone()
+		{
+			return this.MemberwiseClone();
+		}
+
+	}
+
+	
 
 	public class Row
 	{

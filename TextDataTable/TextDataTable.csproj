@@ -58,6 +58,12 @@
     <Compile Include="Forms\DataEditor.Designer.cs">
       <DependentUpon>DataEditor.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FilterEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FilterEditor.Designer.cs">
+      <DependentUpon>FilterEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -68,6 +74,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\DataEditor.resx">
       <DependentUpon>DataEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FilterEditor.resx">
+      <DependentUpon>FilterEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

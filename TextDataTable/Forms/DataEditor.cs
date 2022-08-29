@@ -202,47 +202,37 @@ namespace TextDataTable.Forms
 
 				//Since We completely changed the DataSet, now We need to Update the Column Definitions:
 				this.MyTableConfiguration.columns = new List<Column>(new Column[] {
-					new Column()
+					new Column("Field1","Field 1")
 					{
-						title = "Field 1",
-						field = "Field1",
 						type = "int",
 						width = 100,
 						length = 5,
 						format = "{0:n0}"
 					},
-					new Column()
+					new Column("Field2","Field 2")
 					{
-						title = "Field 2",
-						field = "Field2",
 						type = "string",
 						width = 250,
 						length = 25
 					},
-					new Column()
+					new Column("Field3","Field 3")
 					{
-						title = "Field 3",
-						field = "Field3",
 						type = "decimal",
 						width = 150,
 						length = 8,
 						align = "right",
 						format = "{0:C2}"
 					},
-					new Column()
+					new Column("Field4","Field 4")
 					{
-						title = "Field 4",
-						field = "Field4",
 						type = "DateTime",
 						width = 100,
 						length = 8,
 						align = "center",
 						format = "{0:d}"
 					},
-					new Column()
+					new Column("ColorField","Color")
 					{
-						title = "Color",
-						field = "ColorField",
 						type = "Color",
 						width = 400,
 						length = 28,
@@ -265,23 +255,19 @@ namespace TextDataTable.Forms
 				//Lets add a Summary Field: (This is Optional)
 				this.MyTableConfiguration.summary = new List<Summary>()
 				{
-					new Summary()
+					new Summary("Field3", "SUM")
 					{
-						field = "Field3",
-						agregate = "SUM",
 						format = "{0:n2}"
 					},
-					new Summary()
+					new Summary("Field4", "COUNT")
 					{
-						field = "Field4",
-						agregate = "COUNT",
 						format = "{0} days"
 					}
 				};
 
 				/* FOR THIS EXAMPLE, WE ALSO GOING TO IGNORE THE FOOTER */
-				this.MyTableConfiguration.footer = null;
-				this.MyTableConfiguration.header.title = "Custom DataSet on the Table";
+				this.MyTableConfiguration.header = new Header("Custom DataSet on the Table");
+				this.MyTableConfiguration.footer = null;				
 
 				/* ENABLE AND SORT THE DATA BY 2 FIELDS  */
 				this.MyTableConfiguration.sorting = new Sorting(true)

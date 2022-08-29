@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using TextDataTable.Forms;
 
 namespace TextDataTable
 {
@@ -10,6 +11,7 @@ namespace TextDataTable
 		/// <summary>Class able to produce DataTables in Text Mode.
 		/// Author: Jhollman Chacon (Blue Mystic) - 2022</summary>
 		private TextDataTable myTable; //<- STEP 1:  DECLARE THE CLASS
+		private List<FilterCriteria> Criteria { get; set; }
 
 		public Form1()
 		{
@@ -18,14 +20,23 @@ namespace TextDataTable
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
-
+			/* CREATE A CUSTOM FILTER  */
+			this.Criteria = new List<FilterCriteria>(
+				new FilterCriteria[] {
+					new FilterCriteria("scoop", true)
+					{
+						isFirst = true
+					},
+					new FilterCriteria("jump_len", 0.0m)
+					{
+						comparator = ">="
+					}
+			});
 		}
 		private void Form1_Shown(object sender, EventArgs e)
 		{
 			//STEP 2:  LOAD THE CONFIGURATION
 			myTable = new TextDataTable(@"Data\table_config.json"); //<- File is in the bin folder
-
-			//The Data is a property of the Configuration Object: 'this.myTable.TConfiguration.data'
 
 			//Show the Config in the Property grid:
 			propertyGrid1.SelectedObject = myTable.TConfiguration;
@@ -55,60 +66,84 @@ namespace TextDataTable
 			Forms.DataEditor Form = new Forms.DataEditor(myTable.TConfiguration);
 			if (Form.ShowDialog() == DialogResult.OK)
 			{
+				this.Criteria = null;
 				myTable.TConfiguration = Form.MyTableConfiguration;
+				myTable.RefreshData(myTable.TConfiguration.data);
+
 				textBox1.Text = myTable.Build_TextDataTable();
 			}
 		}
 
-		public void AddFilter()
-		{
-			try
-			{
-				//Operators:  <, >, ==, <=, >=, !=, IN(1,2,..)
 
-				List<dynamic> Criteria = new List<dynamic>(
-					new dynamic[] {
-					new
-					{
-						field = "field1",
-						value = 1234,
-						comparator = ">="
-					},
-					new
-					{
-						field = "field2",
-						value = 666,
-						comparator = "!="
-					},
-					new
-					{
-						field = "field3",
-						value = 666,
-						comparator = "=="
-					}
-				});
-
-				var Data = myTable.FilterData(Criteria);
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			}
-		}
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			List<dynamic> Criteria = new List<dynamic>(
-					new dynamic[] {
-					new
-					{
-						field = "scoop",
-						value = false,
-						comparator = "=="
-					}
-				});
+			/* YOU CAN APPLY A FILTER ON THE DATA IN 2 WAYS: */
 
-			var Data = myTable.FilterData(Criteria);
+			// 1. If your KungFu is strong, then write yourself a JSONPath Expression:	 
+			string JSONPathExpression = @"$[?(@.jumps >= 2)]";
+
+			JSONPathExpression = @"$[?((@.jump_len >= 0.0 || @.star_type != 'F (White) Star') && (@.scoop == true))]";
+			JSONPathExpression = @"[*][?((@.jump_len >= 0.0 || @.star_type != 'F (White) Star'), ?(@.scoop == true)]";
+			JSONPathExpression = @"[?(@.name=='e2e')]";
+			JSONPathExpression = @"[*][?(@.jump_len >= 0.0 || @.star_type != 'F (White) Star'), ?(@.scoop == true)]";
+			JSONPathExpression = @"$..[?((@.category=='fiction' || @.author=='Nigel Rees') && (@.price < 10))]";
+
+			//var Data = myTable.FilterData(JSONPathExpression, true);
+
+			/* Or.. If you are not that confident at Kicking butts, then build a List of Criteria
+			 * either manually (see the 'Form1_Load' method here)
+			 * or by Invoking the FilterEditor (see below)	*/
+			var Data = myTable.FilterData(Criteria, true);
+
+			//After getting the data filtered you need to show it, in this case on the TextTable:
+			textBox1.Text = myTable.Build_TextDataTable();
+		}		
+
+		private void cmdFilterEditor_Click(object sender, EventArgs e)
+		{
+			/* Here we invoke the Filter Editor */
+			FilterEditor Form = new FilterEditor(myTable.TConfiguration.columns, myTable.OriginalData);
+			Form.Criteria = this.Criteria; //<- If we already have a filter then we use it
+
+			if (Form.ShowDialog() == DialogResult.OK)
+			{
+				this.Criteria = Form.Criteria;
+
+				var Data = myTable.FilterData(Criteria, true);
+
+				textBox1.Text = myTable.Build_TextDataTable();
+			}
+		}
+
+		private void cmdUndoFilter_Click(object sender, EventArgs e)
+		{
+			// UNDO THE FILTERING RESTORING THE ORIGINAL DATA
+			myTable.RefreshData();
+
+			textBox1.Text = myTable.Build_TextDataTable();
+		}
+				
+		private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			//Se Presionó la Tecla ENTER
+			if (e.KeyChar == (char)Keys.Enter)
+			{				
+				/* Do a quick Text Search on all fields querying for the Search String. */
+				var Data = myTable.QuickSearch(textBox2.Text, true);
+
+				//After getting the data filtered you need to show it, in this case on the TextTable:
+				textBox1.Text = myTable.Build_TextDataTable();
+			}
+		}
+		private void cmdQuickSearch_Click(object sender, EventArgs e)
+		{
+			/* Do a quick Text Search on all fields querying for the Search String. */
+
+			var Data = myTable.QuickSearch(textBox2.Text, true);
+
+			//After getting the data filtered you need to show it, in this case on the TextTable:
+			textBox1.Text = myTable.Build_TextDataTable();
 		}
 	}
 }
