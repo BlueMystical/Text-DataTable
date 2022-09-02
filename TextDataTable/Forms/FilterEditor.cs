@@ -85,13 +85,20 @@ namespace TextDataTable.Forms
 				if (this.Criteria != null && this.Criteria.Count > 0)
 				{
 					IsLoading = true;
-					
+					int EnabledFilters = 0;
 					foreach (var Filter in Criteria)
 					{
 						this.checkedListBox1.Items.Add(Filter.ToString(true), Filter.enabled);
+						if (Filter.enabled) EnabledFilters++;
 					}
 
-					if (Sel_Index >= 0) this.checkedListBox1.SelectedIndex = Sel_Index;					
+					if (Sel_Index >= 0) this.checkedListBox1.SelectedIndex = Sel_Index;
+
+					this.lblFilterCounter.Text = string.Format("{0} Filters", EnabledFilters);
+				}
+				else
+				{
+					this.lblFilterCounter.Text = "0 Filters";
 				}
 
 				LoadData();
@@ -308,6 +315,13 @@ namespace TextDataTable.Forms
 				this.Criteria[e.Index].enabled = (e.NewValue == CheckState.Checked) ? true : false;
 				LoadData();
 			}
+
+			int EnabledFilters = 0;
+			foreach (var filter in this.Criteria)
+			{
+				if (filter.enabled) EnabledFilters++;
+			}
+			this.lblFilterCounter.Text = string.Format("{0} Filters", EnabledFilters);
 		}
 
 		private void cmdAddFilter_Click(object sender, EventArgs e)

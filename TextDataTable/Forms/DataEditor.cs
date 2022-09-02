@@ -54,7 +54,9 @@ namespace TextDataTable.Forms
 						Field2 = "Custom Text for Field 1",
 						Field3 = 1001.9876m,
 						Field4 = DateTime.Today.AddDays(-10),
-						ColorField = System.Drawing.Color.FromArgb(128,255,255,0)
+						ColorField = System.Drawing.Color.FromArgb(128,255,255,0),
+						SizeField = new System.Drawing.Size(50, 60),
+						FontField = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Regular)
 					},
 					new myCustomData()
 					{
@@ -62,7 +64,8 @@ namespace TextDataTable.Forms
 						Field2 = "Custom Text for Field 2",
 						Field3 = 507.2345m,
 						Field4 = DateTime.Today.AddDays(-8),
-						ColorField = System.Drawing.Color.Brown
+						ColorField = System.Drawing.Color.Brown,
+						FontField = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold)
 					},
 					new myCustomData()
 					{
@@ -234,8 +237,8 @@ namespace TextDataTable.Forms
 					new Column("ColorField","Color")
 					{
 						type = "Color",
-						width = 400,
-						length = 28,
+						width = 200,
+						length = 20,
 						format = null
 					},
 					/* HERE WE ARE GOING TO ADD A CALCULATED FIELD WICH WILL BE THE SUM OF	Field1 and Field3 */
@@ -301,6 +304,9 @@ namespace TextDataTable.Forms
 		public string Field2 { get; set; }
 		public decimal Field3 { get; set; }
 		public DateTime Field4 { get; set; }
+
 		public System.Drawing.Color ColorField { get; set; }
+		public System.Drawing.Size SizeField { get; set; }
+		public System.Drawing.Font FontField { get; set; }
 	}
 }

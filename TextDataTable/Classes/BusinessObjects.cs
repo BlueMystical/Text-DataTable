@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace TextDataTable
@@ -10,7 +11,7 @@ namespace TextDataTable
 
 		/// <summary>[Required] Behavior Properties of the Table.</summary>
 		[Description("[Required] Behavior Properties of the Table"), Category("Behavior"), DisplayName("Properties")]
-		public Propiedades properties { get; set; }
+		public Propiedades properties { get; set; } = new Propiedades();
 
 		/// <summary>[Optional] Box used to show a Custom Title for the Table.</summary>
 		[Description("[Optional] Box used to show a Custom Title for the Table"), Category("Appearance"), DisplayName("Header")]
@@ -46,14 +47,15 @@ namespace TextDataTable
 	{
 		public Propiedades() { }
 
-		[Description("Font used to render the ImageTable"), Category("Appearance"), DisplayName("Font")]
-		public Fuente font { get; set; }
+		/// <summary>Font Options for this Element. [Image Table Only]</summary>
+		[DisplayName("Font"), Description("Font Options for this Element. [Image Table Only]"), Category("Appearance")]
+		public Fuente font { get; set; } = new Fuente();
 
 		[Description("Borders for the Table"), Category("Appearance"), DisplayName("Borders")]
-		public Borders borders { get; set; }
+		public Borders borders { get; set; } = new Borders();
 
 		[Description("General Config"), Category("Appearance"), DisplayName("Table")]
-		public Table table { get; set; }
+		public Table table { get; set; } = new Table();
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -61,13 +63,23 @@ namespace TextDataTable
 	{
 		public Fuente() { }
 
+		/// <summary>Name of the Font, Only for ImageTable, use a monospaced font.</summary>
 		[Description("Name of the Font, Only for ImageTable, use a monospaced font."),
 		 DisplayName("Font Name"), DefaultValue("Courier New"), Category("Appearance")]
-		public string font_name { get; set; }
+		public string font_name { get; set; } = "Courier New";
 
+		/// <summary>Size of the Font, Only for ImageTable</summary>
 		[Description("Size of the Font, Only for ImageTable"),
 		 DisplayName("Font Size"), Category("Appearance"), DefaultValue(12)]
-		public int font_size { get; set; }
+		public int font_size { get; set; } = 10;
+
+		/// <summary>Set the Font Style: 'Regular', 'Bold', 'Italic', 'Underline'</summary>
+		public System.Drawing.FontStyle font_style { get; set; } = System.Drawing.FontStyle.Regular;
+
+		public System.Drawing.Font ToFont()
+		{
+			return new System.Drawing.Font(this.font_name, font_size, font_style);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -76,12 +88,12 @@ namespace TextDataTable
 		public Borders() { }
 
 		[Description("Type of Borders: 'simple', 'doble'"),
-		DisplayName("Border Type"), DefaultValue("simple"), Category("Appearance")] 
-		public string type { get; set; }
+		DisplayName("Border Type"), DefaultValue("simple"), Category("Appearance")]
+		public string type { get; set; } = "simple";
 
 		[Description("ARGB Color for the Borders"),
 		DisplayName("Border Color"), DefaultValue("255, 255, 106, 0"), Category("Appearance")]
-		public string color_argb { get; set; }
+		public string color_argb { get; set; } = "255, 255, 106, 0";
 
 		[DisplayName("Border Symbols"), Description("Char Symbols used for the Borders"), Category("Appearance")]
 		public List<SymbolElement> symbols { get; set; }
@@ -121,23 +133,40 @@ namespace TextDataTable
 	{
 		public Table() { }
 
-		[Description("ARGB Color for the Table Background (only for Image Tables)"),
-		DisplayName("Back Color"), DefaultValue("128, 0, 0, 0")]
-		public string backcolor_argb { get; set; }
+		/// <summary>Configuration for the Column Headers</summary>
+		public table_config column_headers { get; set; } = new table_config();
 
-		[Description("ARGB Color for the Text Font, Only for ImageTable (only for Image Tables)"),
-		 DisplayName("Text Color"), DefaultValue("255, 255, 106, 0"), Category("Appearance")]
-		public string forecolor_argb { get; set; }
+		/// <summary>Configuration for the Rows of Data</summary>
+		public table_config data_rows { get; set; } = new table_config();
+	}
 
-		[Description("Margin Spaces around the Texts, in Characters (only for Text Tables)"), 
+	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
+	public class table_config
+	{
+		public table_config() { }
+
+		/// <summary>Margin Spaces around the Texts, in Characters (only for Text Tables)</summary>
+		[Description("Margin Spaces around the Texts, in Characters (only for Text Tables)"),
 		DisplayName("Cell Padding"), DefaultValue(1)]
-		public int cell_padding { get; set; }
+		public int cell_padding { get; set; } = 1;
 
+		/// <summary>Height of the Row Cells in Pixels (Only for Image Tables)</summary>
 		[Description("Height of the Row Cells in Pixels (Only for Image Tables)"),
 		DisplayName("Cell Height"), DefaultValue(30)]
-		public int cell_height { get; set; }
+		public int cell_height { get; set; } = 30;
 
-		
+		/// <summary>Colors for the Box containing this element. [Image Table Only]</summary>
+		[DisplayName("Colors"), Description("Colors for the Box containing this element. [Image Table Only]"), Category("Appearance")]
+		public Colores colors { get; set; } = new Colores();
+
+		/// <summary>Font Options for this Element. [Image Table Only]</summary>
+		[DisplayName("Font"), Description("Font Options for this Element. [Image Table Only]"), Category("Appearance")]
+		public Fuente font { get; set; } = new Fuente()
+		{
+			font_name = "Courier New",
+			font_style = System.Drawing.FontStyle.Regular,
+			font_size = 12
+		};
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -147,32 +176,124 @@ namespace TextDataTable
 		public Header(string Title)
 		{
 			this.title = Title;
-			this.length = Title.Length + 2;
+			this.size.length = Title.Length + 2;
 		}
 
+		/// <summary>Text for the Title</summary>
 		[Description("Text for the Title"), Category("Appearance"),
 		DisplayName("Title"), DefaultValue("Example Text")]
 		public string title { get; set; }
 
+		/// <summary>Text Horizontal Align: [left, center, right] default 'center'</summary>
+		[DisplayName("Text Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
+		public string text_align { get; set; } = "center";
+
+		/// <summary>Size for the Box containing this element.</summary>
+		[DisplayName("Size"), Description("Size for the Box containing this element."), Category("Appearance")]
+		public Tamaño size { get; set; } = new Tamaño();
+
+		/// <summary>Colors for the Box containing this element.</summary>
+		[DisplayName("Colors"), Description("Colors for the Box containing this element."), Category("Appearance")]
+		public Colores colors { get; set; } = new Colores();
+
+		/// <summary>Font Options for this Element.</summary>
+		[DisplayName("Font"), Description("Font Options for this Element."), Category("Appearance")]
+		public Fuente font { get; set; } = new Fuente()
+		{
+			font_name = "Courier New",
+			font_style = System.Drawing.FontStyle.Regular,
+			font_size = 12
+		};
+	}
+
+	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
+	public class Tamaño
+	{
+		public Tamaño() { }
+
+		/// <summary>Width in pixels for the Box, only for ImageTable</summary>
 		[Description("Width in pixels for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Width"), DefaultValue(500), Category("Appearance")]
 		public int width { get; set; } = 500;
 
+		/// <summary>Height in pixels for the Box, only for ImageTable</summary>
+		[Description("Height in pixels for the Header/Footer Box, only for ImageTable"),
+		DisplayName("Height"), DefaultValue(30), Category("Appearance")]
+		public int height { get; set; } = 30;
+
+		/// <summary>Width in Characters for the Box, only for TextTable</summary>
 		[Description("Width in Characters for the Header/Footer Box, only for TextTable"),
 		DisplayName("Length"), DefaultValue(50), Category("Appearance")]
 		public int length { get; set; } = 50;
 
-		/// <summary>Text Horizontal Align: [left, center, right] default 'center'</summary>
-		[DisplayName("Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
-		public string align { get; set; } = "center";
+		/// <summary>Gets or set if this element will use the whole Row. [for both types of table]</summary>
+		[Description("Gets or set if this element will use the whole Row."),
+		DisplayName("Use Whole Row"), DefaultValue(50), Category("Appearance")]
+		public bool use_whole_row { get; set; } = false;
+	}
 
+	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
+	public class Colores
+	{
+		public Colores() { }
+
+		/// <summary>Background Color for the Header/Footer Box, only for ImageTable</summary>
 		[Description("Background Color for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Background Color"), DefaultValue("128, 0, 0, 0"), Category("Appearance")]
 		public string backcolor_argb { get; set; } = "128, 0, 0, 0";
 
+		/// <summary>Text Color for the Header/Footer Box, only for ImageTable</summary>
 		[Description("Text Color for the Header/Footer Box, only for ImageTable"),
 		DisplayName("Foreground Color"), DefaultValue("255,255,255,255"), Category("Appearance")]
 		public string forecolor_argb { get; set; } = "255,255,255,255";
+
+		/// <summary>Text Color for the Header/Footer Box, only for ImageTable</summary>
+		[Description("Alternative Color for the Box, only for ImageTable"),
+		DisplayName("Alternative Color"), DefaultValue("255,255,255,255"), Category("Appearance")]
+		public string altcolor_argb { get; set; } = "255,255,255,255";
+
+		/// <summary>Returns the specified Color.</summary>
+		/// <param name="pColorName">Name of the Property that holds the Color</param>
+		public System.Drawing.Color ToColor(string pColorName)
+		{
+			System.Drawing.Color _ret = System.Drawing.Color.Transparent;
+
+			string pARGBColor;
+			switch (pColorName)
+			{
+				case "forecolor_argb":
+					pARGBColor = this.forecolor_argb;
+					break;
+				case "backcolor_argb":
+					pARGBColor = this.backcolor_argb;
+					break;
+				default:
+					pARGBColor = this.altcolor_argb;
+					break;
+			}
+
+			if (pARGBColor != null && pARGBColor != string.Empty)
+			{
+				var ColorArray = pARGBColor.Split(new char[] { ',' });
+				if (ColorArray != null && ColorArray.Length > 0)
+				{
+					_ret = System.Drawing.Color.FromArgb(
+						Convert.ToInt32(ColorArray[0]),
+						Convert.ToInt32(ColorArray[1]),
+						Convert.ToInt32(ColorArray[2]),
+						Convert.ToInt32(ColorArray[3])
+					);
+				}
+			}
+			return _ret;
+		}
+
+		/// <summary>Returns a Color Brush for the specified Color.</summary>
+		/// <param name="pColorName">Name of the Property that holds the Color</param>
+		public System.Drawing.SolidBrush ToBrush(string pColorName)
+		{
+			return new System.Drawing.SolidBrush(this.ToColor(pColorName));
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -254,10 +375,6 @@ namespace TextDataTable
 		[DisplayName("Fields"), Description("Data Fields to Group by"), Category("Data")]
 		public List<string> fields { get; set; }
 
-		///// <summary>Hide or Show the Grouped Columns in the Table.</summary>
-		//[DisplayName("Show Columns"), Description("Hide or Show the Grouped Columns in the Table."), Category("Data")]
-		//public bool hide_group_columns { get; set; } = true;
-
 		/// <summary>Hide or Show the Records Count for each Group.</summary>
 		[DisplayName("Show Count"), Description("Hide or Show the Records Count for each Group."), Category("Data")]
 		public bool show_count { get; set; } = true;
@@ -273,6 +390,19 @@ namespace TextDataTable
 		/// If 'false' the column headers are drawn only at the top, before the Groups.</summary>
 		[DisplayName("Repeat Headers"), Description("If 'true' draws the Column headers on every Group."), Category("Data")]
 		public bool repeat_column_headers { get; set; } = true;
+
+		/// <summary>Colors for the Box containing this element. [Image Table Only]</summary>
+		[DisplayName("Colors"), Description("Colors for the Box containing this element. [Image Table Only]"), Category("Appearance")]
+		public Colores colors { get; set; } = new Colores();
+
+		/// <summary>Font Options for this Element. [Image Table Only]</summary>
+		[DisplayName("Font"), Description("Font Options for this Element. [Image Table Only]"), Category("Appearance")]
+		public Fuente font { get; set; } = new Fuente()
+		{
+			font_name = "Courier New",
+			font_style = System.Drawing.FontStyle.Regular,
+			font_size = 12
+		};
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -444,11 +574,74 @@ namespace TextDataTable
 
 	}
 
-	
+	public class ImageMapping
+	{
+		public ImageMapping() { }
+		public ImageMapping(int RowIndex, int ColIndex)
+		{
+			row_index = RowIndex;
+			col_index = ColIndex;
+		}
+
+		/// <summary>Type of Element.</summary>
+		public TableElements ElementType { get; set; }
+
+		/// <summary>Un-formatted raw Value.</summary>
+		public object RawValue { get; set; }
+
+		/// <summary>Text Shown in the CellBox.</summary>
+		public string CellText { get; set; }
+
+
+		public int row_index { get; set; }
+		public int col_index { get; set; }
+
+		
+		public System.Drawing.Rectangle CellBox { get; set; }
+
+		public object Column { get; set; }
+		public object Row { get; set; }
+
+		/// <summary>Checks if a Pixel is in the boundaries of the Box.</summary>
+		/// <param name="Pixel">Coordinates of the Pixel to look for.</param>
+		public bool IsPixelInBox(System.Drawing.Point Pixel)
+		{
+			bool _ret = false;
+
+			if (this.CellBox != null)
+			{
+				bool XisInRange = false;
+				bool YisInRange = false;
+
+				if (Pixel.X >= CellBox.Location.X && Pixel.X <= (CellBox.Location.X + CellBox.Width))
+				{
+					XisInRange = true;
+				}
+				if (Pixel.Y >= CellBox.Location.Y && Pixel.Y <= (CellBox.Location.Y + CellBox.Height))
+				{
+					YisInRange = true;
+				}
+				_ret = (XisInRange && YisInRange);
+			}
+
+			return _ret;
+		}
+	}
+
+	public enum TableElements
+	{
+		TABLE_HEADER = 0,
+		GROUP_HEADER,
+		COLUMN_ROW,
+		DATA_ROW,
+		GROUP_SUMMARY,
+		TABLE_SUMMARY,
+		TABLE_FOOTER
+	}
 
 	public class Row
 	{
-		Dictionary<string, object> properties = new Dictionary<string, object>();
+		Dictionary<string, object> fields = new Dictionary<string, object>();
 		private int rIndex;
 
 		public Row(int rIndex)
@@ -460,15 +653,15 @@ namespace TextDataTable
 		{
 			get
 			{
-				if (properties.ContainsKey(name))
+				if (fields.ContainsKey(name))
 				{
-					return properties[name];
+					return fields[name];
 				}
 				return null;
 			}
 			set
 			{
-				properties[name] = value;
+				fields[name] = value;
 			}
 		}
 

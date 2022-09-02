@@ -36,6 +36,10 @@ namespace TextDataTable
 		/// <para>Use 'RefreshData(newData)' to set a new DataSet</para></summary>
 		public List<dynamic> OriginalData { get; set; }
 
+		/// <summary>Stores Information about every CellBox in the Table.
+		/// <para>Useful for Pixel Mapping over the Image, Call 'GetPixelInfo' method.</para></summary>
+		public List<ImageMapping> CellBoxMappings { get; set; }
+
 		#endregion
 
 		#region Private Fields
@@ -85,6 +89,8 @@ namespace TextDataTable
 			}
 		}
 
+		/// <summary>Builds the DataTable on a Text String.
+		/// <para>[NOTE]: The Font must be Monospaced.</para></summary>
 		public string Build_TextDataTable()
 		{
 			string _ret = string.Empty;
@@ -100,7 +106,7 @@ namespace TextDataTable
 						TConfiguration.properties.borders.symbols[0];
 
 					List<int> ColunmPositions = new List<int>(); //<- The Left position (in characters) for each Column.
-					int Margin = TConfiguration.properties.table.cell_padding;
+					int Margin = TConfiguration.properties.table.data_rows.cell_padding;
 					StringBuilder Lines = new StringBuilder();
 					string CellText = string.Empty;
 					int ColumnSize = 0;
@@ -115,47 +121,49 @@ namespace TextDataTable
 					{
 						foreach (var _Column in TConfiguration.columns)
 						{
-							ColumnSize = (int)_Column.length + (Margin * 2);
-							TableSize += ColumnSize + 1;
+							TableSize += _Column.length + (Margin * 2) +1;
 						}
 						TableSize++;
 					}
 
 					if (TConfiguration.header != null)
 					{
-						//1. Crea la Caja para el Header:
-						CellText = TConfiguration.header.title;
-						ColumnSize = TConfiguration.header.length + (Margin * 2);
+						CellText = TConfiguration.header.title.ToString();
+
+						//May use the whole row or just the header width
+						ColumnSize = (!TConfiguration.header.size.use_whole_row) ?							
+							TConfiguration.header.size.length :
+							TableSize; 
+
+						string LINE = string.Empty;
 
 						//Linea Superior:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Top.Left.ToString(),
-								new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
-								Borders.Top.Right.ToString()
-						), TableSize, TConfiguration.header.align));
+						LINE = new string(Borders.Top.Border, ColumnSize - 2);
+						LINE = string.Format("{0}{1}{2}", Borders.Top.Left, LINE, Borders.Top.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.header.text_align)
+						);
 
 						//Lineas Laterales y Texto:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Sides.Left.ToString(),
-								AlinearTexto(CellText, ColumnSize, "center"),
-								Borders.Sides.Right.ToString()
-						), TableSize, TConfiguration.header.align));
+						LINE = AlinearTexto(CellText, ColumnSize -2, TConfiguration.header.text_align);
+						LINE = string.Format("{0}{1}{2}", Borders.Sides.Left, LINE, Borders.Sides.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.header.text_align)
+						);
 
 						//Linea Inferior:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Bottom.Left.ToString(),
-								new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
-								Borders.Bottom.Right.ToString()
-						), TableSize, TConfiguration.header.align));
+						LINE = new string(Borders.Bottom.Border, ColumnSize -2);
+						LINE = string.Format("{0}{1}{2}", Borders.Bottom.Left, LINE, Borders.Bottom.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.header.text_align)
+						);
 					}
 
 					#endregion
 
 					#region Data Sorting
 
+					//If the DataSorting is Configured and Enabled, here is where it's Applied:
 					if (DataSource != null && DataSource.Count > 0)
 					{
 						if (TConfiguration.sorting != null && TConfiguration.sorting.enabled)
@@ -166,7 +174,6 @@ namespace TextDataTable
 							}
 						}
 					}
-					//If Sorting is not Enabled, Data keeps the original order.
 
 					#endregion
 
@@ -176,6 +183,8 @@ namespace TextDataTable
 
 					if (DataSource != null && DataSource.Count > 0)
 					{
+						//If the DataGrouping is Configured and Enabled, here is where it is Applied:
+
 						if (TConfiguration.grouping != null && TConfiguration.grouping.enabled)
 						{
 							if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
@@ -532,6 +541,10 @@ namespace TextDataTable
 								}
 							}
 						}
+						else
+						{
+							GroupedData = null;
+						}
 					}
 					else
 					{
@@ -558,6 +571,7 @@ namespace TextDataTable
 						}
 						foreach (var group in GroupedData)
 						{
+							//This shows the Column names and values used for grouping:
 							if (group.Header != null && group.Header.Count > 0)
 							{
 								foreach (string linea in group.Header)
@@ -565,6 +579,7 @@ namespace TextDataTable
 									Lines.AppendLine(linea);
 								}
 							}
+							//This is the Data of each Group:
 							if (group.Body != null && group.Body.Count > 0)
 							{
 								foreach (string linea in group.Body)
@@ -573,6 +588,7 @@ namespace TextDataTable
 								}
 								TableSize = group.Body[group.Body.Count - 1].Length;
 							}
+							//This is Group Summary:
 							if (group.Footer != null && group.Footer.Count > 0)
 							{
 								foreach (string linea in group.Footer)
@@ -805,16 +821,16 @@ namespace TextDataTable
 										CellText = AlinearTexto(CellText, ColumnSize, _Column.align);
 									}
 
-									if (ColunmPositions.Count < TConfiguration.columns.Count)
-									{
-										ColunmPositions.Add(Cell_Top.Length);
-									}
-
 									//Linea Superior:
 									Cell_Top += string.Format("{0}{1}",
 										CornerL,
 										new string(Convert.ToChar(Borders.Top.Border), ColumnSize)
 									);
+
+									if (ColunmPositions.Count < TConfiguration.columns.Count)
+									{
+										ColunmPositions.Add(Cell_Top.Length);
+									}
 
 									//Lineas Laterales y Texto:
 									Cell_Mid += string.Format("{0}{1}",
@@ -911,7 +927,7 @@ namespace TextDataTable
 
 						#endregion
 
-						#region Summary
+						#region Table Summary
 
 						if (DataSource != null && DataSource.Count > 0)
 						{
@@ -1039,36 +1055,39 @@ namespace TextDataTable
 						#endregion
 					}
 
-					#region Footer
+					#region Table Footer
 
 					if (TConfiguration.footer != null)
 					{
 						CellText = TConfiguration.footer.title.ToString();
-						ColumnSize = TConfiguration.footer.length + (Margin * 2);
+
+						//May use the whole row or just the header width
+						ColumnSize = (!TConfiguration.footer.size.use_whole_row) ?
+							TConfiguration.footer.size.length :
+							TableSize;
+
+						string LINE = string.Empty;
 
 						//Linea Superior:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Top.Left.ToString(),
-								new string(Convert.ToChar(Borders.Top.Border), ColumnSize),
-								Borders.Top.Right.ToString()
-						), TableSize, TConfiguration.footer.align));
+						LINE = new string(Borders.Top.Border, ColumnSize - 2);
+						LINE = string.Format("{0}{1}{2}", Borders.Top.Left, LINE, Borders.Top.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.footer.text_align)
+						);
 
 						//Lineas Laterales y Texto:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Sides.Left.ToString(),
-								AlinearTexto(CellText, ColumnSize),
-								Borders.Sides.Right.ToString()
-						), TableSize, TConfiguration.footer.align));
+						LINE = AlinearTexto(CellText, ColumnSize - 2, TConfiguration.footer.text_align);
+						LINE = string.Format("{0}{1}{2}", Borders.Sides.Left, LINE, Borders.Sides.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.footer.text_align)
+						);
 
 						//Linea Inferior:
-						Lines.AppendLine(AlinearTexto(
-							string.Format("{0}{1}{2}",
-								Borders.Bottom.Left.ToString(),
-								new string(Convert.ToChar(Borders.Bottom.Border), ColumnSize),
-								Borders.Bottom.Right.ToString()
-						), TableSize, TConfiguration.footer.align));
+						LINE = new string(Borders.Bottom.Border, ColumnSize - 2);
+						LINE = string.Format("{0}{1}{2}", Borders.Bottom.Left, LINE, Borders.Bottom.Right);
+						Lines.AppendLine(
+							AlinearTexto(LINE, TableSize, TConfiguration.footer.text_align)
+						);
 					}
 
 					#endregion
@@ -1083,6 +1102,8 @@ namespace TextDataTable
 			return _ret;
 		}
 
+		/// <summary>Builds the DataTable on an Image.</summary>
+		/// <param name="pImageSize">Size for the returned Image</param>
 		public Bitmap Build_ImageDataTable(Size pImageSize)
 		{
 			System.Drawing.Bitmap image = null;
@@ -1090,253 +1111,647 @@ namespace TextDataTable
 			{
 				if (TConfiguration != null)
 				{
-					#region Config
-
-					Color BackgroundColor = StringToColor(TConfiguration.properties.table.backcolor_argb);
-					Color BorderColor = StringToColor(TConfiguration.properties.borders.color_argb);
-					Color FontColor = StringToColor(TConfiguration.properties.table.forecolor_argb);
-
-					SolidBrush BackgroundBrush = new SolidBrush(BackgroundColor);
-					SolidBrush TextBrush = new SolidBrush(FontColor);
-					Pen BorderPen = new Pen(BorderColor, 1.0f);
-
-					Font Fuente = new Font(TConfiguration.properties.font.font_name, TConfiguration.properties.font.font_size);
-					Point StartPos = new Point(4, 4);
-
-					#endregion
-
 					image = DrawNewImage(pImageSize);
 					using (var g = Graphics.FromImage(image))
 					{
-						Rectangle CellBox;
-						Point TextPosition;
-						Point RowPosition;
-						SizeF TextSize;
+						//Todas las opciones en Alta Calidad:
+						//g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBilinear;
+						//g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+						//g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+						//g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-						List<int> ColunmPositions = new List<int>();
+						#region Config
 
-						#region Header
+						Color BorderColor = StringToColor(TConfiguration.properties.borders.color_argb);
+						Pen BorderPen = new Pen(BorderColor, 1.0f);
 
-						//1. Crea la Caja para el Header:
-						CellBox = new Rectangle(StartPos.X + 2, StartPos.Y + 2, TConfiguration.header.width, TConfiguration.properties.table.cell_height);
+						//This would be the default Values:
+						SolidBrush BackgroundBrush = TConfiguration.properties.table.data_rows.colors.ToBrush("backcolor_argb");
+						SolidBrush TextBrush = TConfiguration.properties.table.data_rows.colors.ToBrush("forecolor_argb");
+						Font Fuente = TConfiguration.properties.font.ToFont();
+						
+						//Table's Header & Footer:
+						SolidBrush HeaderFooter_TextColor = (TConfiguration.header != null) ? new SolidBrush(StringToColor(TConfiguration.header.colors.forecolor_argb)) : TextBrush;
+						SolidBrush HeaderFooter_BackColor = (TConfiguration.header != null) ? new SolidBrush(StringToColor(TConfiguration.header.colors.backcolor_argb)) : BackgroundBrush;
+						Font HeaderFooter_Font = (TConfiguration.header != null) ? TConfiguration.header.font.ToFont() : Fuente;
 
-						//2. Obtiene el tamaño del Texto en pixeles:
-						TextSize = g.MeasureString(TConfiguration.header.title, Fuente);
-						CellBox.Width = (int)TextSize.Width + 20; //<- Ajusta el ancho del header segun sea necesario
+						//Columns:
+						SolidBrush ColumnHeaders_TextColor = new SolidBrush(StringToColor(TConfiguration.properties.table.column_headers.colors.forecolor_argb));
+						SolidBrush ColumnHeaders_BackColor = new SolidBrush(StringToColor(TConfiguration.properties.table.column_headers.colors.backcolor_argb));
+						Font ColumnHeaders_Font = TConfiguration.properties.table.column_headers.font.ToFont();
 
-						//3. Calcula la posicion para centrar el Texto:
-						TextPosition = new Point(
-							Convert.ToInt32((CellBox.Width - TextSize.Width) / 2),
-							Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + 4
-						);
+						//Rows:
+						SolidBrush DataRows_TextColor = new SolidBrush(StringToColor(TConfiguration.properties.table.data_rows.colors.forecolor_argb));
+						SolidBrush DataRows_BackColor = new SolidBrush(StringToColor(TConfiguration.properties.table.data_rows.colors.backcolor_argb));
+						Font DataRows_Font = TConfiguration.properties.table.data_rows.font.ToFont();
 
-						BackgroundBrush = new SolidBrush(StringToColor(TConfiguration.header.backcolor_argb));
-						TextBrush = new SolidBrush(StringToColor(TConfiguration.header.forecolor_argb));
+						//Groups:
+						SolidBrush Groups_TextColor = (TConfiguration.grouping != null) ? new SolidBrush(StringToColor(TConfiguration.grouping.colors.forecolor_argb)) : TextBrush;
+						SolidBrush Groups_BackColor = (TConfiguration.grouping != null) ? new SolidBrush(StringToColor(TConfiguration.grouping.colors.backcolor_argb)) : BackgroundBrush;
+						Font Groups_Font = (TConfiguration.grouping != null) ? TConfiguration.grouping.font.ToFont() : Fuente;
 
-						//4. Dibuja el Header:
-						g.FillRectangle(BackgroundBrush, CellBox);    //<- El Fondo
-						g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-						g.DrawString(TConfiguration.header.title, Fuente, TextBrush, TextPosition);  //<- El Texto 
+						
+						Rectangle CellBox = new Rectangle(0, 0, 0, 0);
+						Point TextPosition = new Point(0, 0);
+						Point RowPosition = new Point(0, 0);
+						Point StartPos = new Point(0, 0);						
+						SizeF TextSize = new SizeF();						
+						Size RowSize = new Size();
 
-						//Registra la Posicion final (el principio de la siguiente Fila):
-						StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
+						int Margin = TConfiguration.properties.table.data_rows.cell_padding * 10;
+						StartPos = new Point(Margin, Margin);
+						int ColumnSize = 0;
+						int TableSize = 0; //<- Width in Pixels of the Table's Body
+						
+						string CellText = string.Empty;
+						int RowIndex = 0;
+						int ColIndex = 0;
 
-						#endregion
+						List<int> ColunmPositions = new List<int>(); //<- X coordinate for Each Column
+						CellBoxMappings = new List<ImageMapping>();
 
-						#region Data Rows
 
-						if (DataSource != null && DataSource.Count > 0)
+						//Calculate the Table's Body Width:
+						if (TConfiguration.columns != null && TConfiguration.columns.Count > 0)
 						{
-							BackgroundBrush = new SolidBrush(BackgroundColor);
-							TextBrush = new SolidBrush(StringToColor(TConfiguration.properties.table.forecolor_argb));
-
-							RowPosition = new Point(StartPos.X, StartPos.Y);
 							foreach (var _Column in TConfiguration.columns)
 							{
-								Size RowSize = new Size(_Column.width, TConfiguration.properties.table.cell_height);
+								TableSize += (int)_Column.width;
+							}
+							TableSize++; //<- Size in Pixels of all the Fields in the Body
 
-								#region 1. Column Headers:
-
-								CellBox = new Rectangle(RowPosition, RowSize);
-								TextSize = g.MeasureString(_Column.title.ToString(), Fuente);
-
-								TextPosition = new Point(
-									Convert.ToInt32((CellBox.Width - TextSize.Width) / 2) + RowPosition.X,
-									Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-								);
-
-								g.FillRectangle(BackgroundBrush, CellBox);    //<- El Fondo
-								g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-								g.DrawString(_Column.title,                   //<- El Texto 
-									Fuente,
-									new SolidBrush(StringToColor(TConfiguration.header.forecolor_argb)),
-									TextPosition);
-
-								RowPosition.Y = CellBox.Location.Y + CellBox.Height;
-								ColunmPositions.Add(RowPosition.X);
-
-								#endregion
-
-								#region 2. The Rows with Data:
-
-								foreach (var _RowData in DataSource)
-								{
-									//Obtiene el Valor de la Celda:	
-									string FieldName = string.Empty;
-									object FieldValue = null;
-
-									if (_Column.type == "Calculated")
-									{
-										FieldValue = GetExpressionValue(_Column.field, _Column, _RowData);
-									}
-									else
-									{
-										var propertyInfo = System.ComponentModel.TypeDescriptor.
-											GetProperties((object)_RowData).
-											Find(_Column.field, true);
-
-										FieldName = propertyInfo.Name;
-										FieldValue = propertyInfo.GetValue(_RowData);
-									}
-
-									string CellText = AplicarFormato(FieldValue, _Column.format, _Column.type);
-									TextSize = g.MeasureString(CellText, Fuente);
-									CellBox = new Rectangle(RowPosition, RowSize);
-
-									switch (_Column.align)
-									{
-										case "left":
-											TextPosition = new Point(
-											   RowPosition.X + 4,
-											   Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-										   ); break;
-										case "center":
-											TextPosition = new Point(
-											  Convert.ToInt32((CellBox.Width - TextSize.Width) / 2) + RowPosition.X,
-											  Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-										  ); break;
-										case "right":
-											TextPosition = new Point(
-											  Convert.ToInt32((CellBox.Width - TextSize.Width) - 4) + RowPosition.X,
-											  Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-										  ); break;
-									}
-
-									g.FillRectangle(BackgroundBrush, CellBox);    //<- El Fondo
-									g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-									g.DrawString(CellText, Fuente, TextBrush, TextPosition);  //<- El Texto 
-
-									RowPosition.Y = CellBox.Location.Y + CellBox.Height;
-								}
-								#endregion
-
-								RowPosition.X = CellBox.Location.X + CellBox.Width;
-								RowPosition.Y = StartPos.Y;
+							if (pImageSize.Width < TableSize)
+							{
+								MessageBox.Show(string.Format("The Image Width is Insuficient!\r\nShould be {0}px at least.", TableSize));
 							}
 						}
 
-						//Registra la Posicion final (el principio de la siguiente Fila):
-						StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
+						#endregion
+
+						#region Table Header
+
+						if (TConfiguration.header != null)
+						{
+							//Obtiene el tamaño del Texto en pixeles:
+							TextSize = g.MeasureString(TConfiguration.header.title, HeaderFooter_Font);
+
+							if (TConfiguration.header.size.use_whole_row)
+							{
+								RowSize = new Size(
+									TableSize,
+									Math.Max(TConfiguration.header.size.height, (int)TextSize.Height)
+								);
+							}
+							else
+							{
+								//If the specified Footer size is insuficient, it gets fixed to the Text Size:
+								RowSize = new Size(
+									Math.Max(TConfiguration.header.size.width, (int)TextSize.Width),
+									Math.Max(TConfiguration.header.size.height, (int)TextSize.Height)
+								);
+							}
+
+							//The Header gets Centered respect to the Table's Body:
+							RowPosition = new Point(
+								Convert.ToInt32(StartPos.X + ((TableSize - RowSize.Width) / 2)),
+								StartPos.Y
+							);
+
+							//Crea la Caja para el Header:
+							CellBox = new Rectangle(RowPosition, RowSize);
+
+							// Calcula la posicion para centrar el Texto:
+							TextPosition = AlinearTexto(CellBox, TextSize, TConfiguration.header.text_align);
+
+							// Dibuja el Header:
+							g.FillRectangle(HeaderFooter_BackColor, CellBox);    //<- El Fondo
+							g.DrawRectangle(BorderPen, CellBox);                //<- El Borde
+							g.DrawString(TConfiguration.header.title,           //<- El Texto 
+								HeaderFooter_Font,
+								HeaderFooter_TextColor,
+								TextPosition);
+
+							// Registra la Posicion final (el principio de la siguiente Fila):
+							StartPos.Y = CellBox.Location.Y + CellBox.Height + Margin;
+
+							CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+							{
+								ElementType = TableElements.TABLE_HEADER,
+								RawValue = TConfiguration.header.title,
+
+								CellText = CellText,
+								CellBox = CellBox,
+
+								Column = TConfiguration.header,
+								Row = null
+							});
+						}
 
 						#endregion
 
-						#region Summary
+						#region Data Sorting
+
+						//If the DataSorting is Configured and Enabled, here is where it's Applied:
+						if (DataSource != null && DataSource.Count > 0)
+						{
+							if (TConfiguration.sorting != null && TConfiguration.sorting.enabled)
+							{
+								if (TConfiguration.sorting.fields != null && TConfiguration.sorting.fields.Count > 0)
+								{
+									DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields);
+								}
+							}
+						}
+
+						#endregion
+
+						#region Data Grouping
+
+						//List<string> GroupColumnHeaders = null; //<- Used only when  'repeat_column_headers' is false.
 
 						if (DataSource != null && DataSource.Count > 0)
 						{
-							if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
-							{
-								List<decimal> SummaryData = GetSummaryValues(TConfiguration.summary, DataSource);
+							//If the DataGrouping is Configured and Enabled, here is where it is Applied:
 
-								int SumaryIndex = 0;
-								foreach (var _Summary in TConfiguration.summary)
+							if (TConfiguration.grouping != null && TConfiguration.grouping.enabled)
+							{
+								if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
 								{
-									int ColIndex = 0;
-									int LeftSpam = 0;
-									string CellText = string.Empty;
+									//Here we do the Actual Data Grouping:
+									GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields);
+
+									//Here we Draw the Grouped Data:
+									if (GroupedData != null && GroupedData.Count > 0)
+									{
+										bool repeat_column_headers = TConfiguration.grouping.repeat_column_headers;
+										bool show_summary = TConfiguration.grouping.show_summary;
+										bool show_Count = TConfiguration.grouping.show_count;
+
+										//Do we need to draw the Column Headers here ? or they got drawn with each Group?
+										#region Column Headers
+										
+										if (!repeat_column_headers)
+										{
+											//Yes! we gotta do it here :-(
+
+											RowPosition = new Point(StartPos.X, StartPos.Y);
+											ColunmPositions = new List<int>();
+											ColIndex = 0;
+											RowIndex = 0;
+
+											foreach (var _Column in TConfiguration.columns)
+											{
+												CellText = _Column.title;
+												TextSize = g.MeasureString(CellText, ColumnHeaders_Font);
+
+												RowSize = new Size(_Column.width, Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+												CellBox = new Rectangle(RowPosition, RowSize);
+
+												TextPosition = AlinearTexto(CellBox, TextSize);
+
+												g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+												g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+												g.DrawString(CellText,                        //<- El Texto 
+													ColumnHeaders_Font,
+													ColumnHeaders_TextColor,
+													TextPosition);
+
+												RowPosition.X = CellBox.X + CellBox.Width;
+												ColunmPositions.Add(CellBox.X);
+
+												CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+												{
+													ElementType = TableElements.COLUMN_ROW,
+													RawValue = _Column.title,
+
+													CellText = CellText,
+													CellBox = CellBox,
+
+													Column = _Column,
+													Row = null
+												});
+												ColIndex++;
+											}
+
+											// Registra la Posicion final (el principio de la siguiente Fila):
+											StartPos.Y = CellBox.Location.Y + CellBox.Height + Margin;
+
+
+										}
+
+										#endregion
+
+										ColIndex = 0;
+										RowIndex = 0;
+
+										foreach (var Group in GroupedData)
+										{
+											ColumnSize = (int)Group.HeaderData.Length + (Margin * 2);
+
+											#region Group Header
+
+											Group.Header = new List<string>();
+
+											CellText = Group.HeaderData; // AlinearTexto(Group.HeaderData, ColumnSize);
+											TextSize = g.MeasureString(CellText, Groups_Font);
+
+											//If the specified Header size is insuficient, it gets fixed to the Text Size:
+											RowSize = new Size(
+												Math.Max(ColumnSize, (int)TextSize.Width),
+												Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height)
+											);
+											RowPosition = new Point(StartPos.X, StartPos.Y);
+											CellBox = new Rectangle(RowPosition, RowSize);
+											TextPosition = AlinearTexto(CellBox, TextSize);
+
+											g.FillRectangle(Groups_BackColor, CellBox);    //<- El Fondo
+											g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+											g.DrawString(CellText,                        //<- El Texto 
+												Groups_Font,
+												Groups_TextColor,
+												TextPosition);
+
+											CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+											{
+												ElementType = TableElements.GROUP_HEADER,
+												RawValue = Group.HeaderData,
+
+												CellText = CellText,
+												CellBox = CellBox,
+
+												Column = Group,
+												Row = null
+											});
+											ColIndex++;
+
+											if (show_Count)
+											{
+												CellText = string.Format(TConfiguration.grouping.CountFormat, Group.Count);
+												TextSize = g.MeasureString(CellText, Groups_Font);
+												RowSize = new Size(
+													Math.Max(ColumnSize, (int)TextSize.Width),
+													Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height)
+												);
+												RowPosition = new Point(CellBox.X + CellBox.Width + Margin, CellBox.Y);
+												CellBox = new Rectangle(RowPosition, RowSize);
+												TextPosition = AlinearTexto(CellBox, TextSize);
+
+												g.DrawString( CellText,                        //<- El Texto 
+													Groups_Font,
+													Groups_TextColor,
+													TextPosition
+												);
+											}
+
+											RowPosition.Y = CellBox.Location.Y + CellBox.Height;
+											ColunmPositions.Add(RowPosition.X);
+
+											// Registra la Posicion final (el principio de la siguiente Fila):
+											StartPos.Y = CellBox.Location.Y + CellBox.Height + Margin;
+
+											#endregion
+
+											#region Column Headers
+
+											//Do we need to draw the Column Headers here ? or they got drawn at the begining of the table?
+											if (repeat_column_headers)
+											{
+												//Yes! we gotta do it here :-(
+
+												RowPosition = new Point(StartPos.X, StartPos.Y);
+												ColunmPositions = new List<int>();
+												RowIndex = 0;
+												ColIndex = 0;
+
+												foreach (var _Column in TConfiguration.columns)
+												{
+													CellText = _Column.title;
+													TextSize = g.MeasureString(CellText, ColumnHeaders_Font);
+
+													RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+														Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+													CellBox = new Rectangle(RowPosition, RowSize);
+
+													TextPosition = AlinearTexto(CellBox, TextSize);
+
+													g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+													g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+													g.DrawString(CellText,                        //<- El Texto 
+														ColumnHeaders_Font,
+														ColumnHeaders_TextColor,
+														TextPosition);
+
+													RowPosition.X = CellBox.X + CellBox.Width;
+													ColunmPositions.Add(CellBox.X);
+
+													CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+													{
+														ElementType = TableElements.COLUMN_ROW,
+														RawValue = _Column.title,
+
+														CellText = CellText,
+														CellBox = CellBox,
+
+														Column = _Column,
+														Row = null
+													});
+													ColIndex++;
+												}
+
+												// Registra la Posicion final (el principio de la siguiente Fila):
+												StartPos.Y = CellBox.Location.Y + CellBox.Height;
+											}
+
+											#endregion
+
+											#region Group Body (Data Rows)
+
+											if (Group.data != null && Group.data.Count > 0)
+											{
+												RowIndex = 0;
+												foreach (var _RowData in Group.data)
+												{
+													RowPosition = new Point(StartPos.X, StartPos.Y);
+													ColIndex = 0;
+
+													foreach (var _Column in TConfiguration.columns)
+													{
+														//Obtiene el Valor de la Celda:	
+														string FieldName = string.Empty;
+														object FieldValue = null;
+
+														if (_Column.type == "Calculated")
+														{
+															FieldValue = GetExpressionValue(_Column.field, _Column, _RowData);
+														}
+														else
+														{
+															var propertyInfo = System.ComponentModel.TypeDescriptor.
+																GetProperties((object)_RowData).
+																Find(_Column.field, true);
+
+															FieldName = propertyInfo.Name;
+															FieldValue = propertyInfo.GetValue(_RowData);
+														}
+
+														CellText = AplicarFormato(FieldValue, _Column.format, _Column.type);
+														TextSize = g.MeasureString(CellText, DataRows_Font);
+														RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+																	  Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+														CellBox = new Rectangle(RowPosition, RowSize);
+														TextPosition = AlinearTexto(CellBox, TextSize, _Column.align);
+
+														g.FillRectangle(DataRows_BackColor, CellBox);    //<- El Fondo
+														g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+														g.DrawString(CellText, DataRows_Font, DataRows_TextColor, TextPosition);  //<- El Texto 
+
+														RowPosition.X = CellBox.Location.X + CellBox.Width;
+														RowPosition.Y = StartPos.Y;
+
+														CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+														{
+															ElementType = TableElements.DATA_ROW,
+															RawValue = FieldValue,
+
+															CellText = CellText,
+															CellBox = CellBox,
+
+															Column = _Column,
+															Row = _RowData
+														});
+														ColIndex++;
+													}
+
+													// Registra la Posicion final (el principio de la siguiente Fila):
+													StartPos.Y = CellBox.Location.Y + CellBox.Height;
+													RowIndex++;
+												}
+
+												//Posicion Final del Grupo:
+												StartPos.Y += Margin;
+											}
+
+											#endregion
+
+											#region Group Summary
+
+											if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
+											{
+												List<decimal> SummaryData = GetSummaryValues(TConfiguration.summary, Group.data);
+
+												int SumaryIndex = 0;
+												foreach (var _Summary in TConfiguration.summary)
+												{
+													ColIndex = 0;
+													int LeftSpam = 0;
+
+													CellText = string.Empty;
+													RowPosition = new Point(StartPos.X, StartPos.Y);
+
+													foreach (var _Column in TConfiguration.columns)
+													{
+														if (_Column.field == _Summary.field)
+														{
+															LeftSpam = ColunmPositions[ColIndex];
+															RowPosition = new Point(LeftSpam, RowPosition.Y);
+
+															CellText = AplicarFormato(SummaryData[SumaryIndex], _Summary.format, _Column.type);
+															TextSize = g.MeasureString(CellText, DataRows_Font);
+															RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+																	  Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+															CellBox = new Rectangle(RowPosition, RowSize);
+															TextPosition = AlinearTexto(CellBox, TextSize, _Column.align);
+
+															g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+															g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+															g.DrawString(CellText,                       //<- El Texto 
+																DataRows_Font,
+																ColumnHeaders_TextColor,
+																TextPosition);
+
+															RowPosition.Y = CellBox.Location.Y + CellBox.Height;
+
+															CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+															{
+																ElementType = TableElements.GROUP_SUMMARY,
+																RawValue = SummaryData[SumaryIndex],
+
+																CellText = CellText,
+																CellBox = CellBox,
+
+																Column = _Column,
+																Row = _Summary
+															});
+														}
+														ColIndex++;
+													}
+													SumaryIndex++;
+												}
+
+												// Registra la Posicion final (el principio de la siguiente Fila):
+												StartPos.Y = CellBox.Location.Y + CellBox.Height;
+												StartPos.Y += Margin;
+											}
+
+											#endregion
+										}
+
+										//If there is Sumary, draw a line before showing the Table's Summary
+										if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
+										{
+											var EndPoint = new Point(StartPos.X + TableSize, StartPos.Y);
+
+											//the line has 'horns':  └───────────────┘
+											g.DrawLine(BorderPen, StartPos, new Point(StartPos.X, StartPos.Y - Margin)); //<- Left Horn
+											g.DrawLine(BorderPen, StartPos, EndPoint ); //<- the Line
+											g.DrawLine(BorderPen, EndPoint, new Point(EndPoint.X, EndPoint.Y - Margin)); //<- Right Horn
+										}
+									}
+								}
+							}
+							else 
+							{
+								GroupedData = null;
+							}
+						}
+						else
+						{
+							GroupedData = null;
+						}
+
+						#endregion
+
+						#region UnGrouped Data
+
+						//Grouping not Enabled, lets show the data as it is:
+						if (GroupedData == null)
+						{
+							#region Column Headers
+
+							RowPosition = new Point(StartPos.X, StartPos.Y);
+							ColunmPositions = new List<int>();
+							ColIndex = 0;
+							RowIndex = 0;
+
+							foreach (var _Column in TConfiguration.columns)
+							{
+								CellText = _Column.title;
+								TextSize = g.MeasureString(CellText, ColumnHeaders_Font);
+
+								RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+									Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+								CellBox = new Rectangle(RowPosition, RowSize);
+
+								TextPosition = AlinearTexto(CellBox, TextSize);
+
+								g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+								g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+								g.DrawString(CellText,                        //<- El Texto 
+									ColumnHeaders_Font,
+									ColumnHeaders_TextColor,
+									TextPosition);
+
+								RowPosition.X = CellBox.X + CellBox.Width;
+								ColunmPositions.Add(CellBox.X);
+
+								CellBoxMappings.Add(new ImageMapping(ColIndex, RowIndex)
+								{
+									ElementType = TableElements.COLUMN_ROW,
+									RawValue = _Column.title,
+
+									CellText = CellText,
+									CellBox = CellBox,
+
+									Column = _Column,
+									Row = null
+								});
+								ColIndex++;
+							}
+
+							// Registra la Posicion final (el principio de la siguiente Fila):
+							StartPos.Y = CellBox.Location.Y + CellBox.Height;
+
+							#endregion
+
+							#region Data Rows
+
+							if (DataSource != null && DataSource.Count > 0)
+							{
+								foreach (var _RowData in DataSource)
+								{
 									RowPosition = new Point(StartPos.X, StartPos.Y);
 
 									foreach (var _Column in TConfiguration.columns)
 									{
-										if (_Column.field == _Summary.field)
+										//Obtiene el Valor de la Celda:	
+										string FieldName = string.Empty;
+										object FieldValue = null;
+
+										if (_Column.type == "Calculated")
 										{
-											LeftSpam = ColunmPositions[ColIndex];
-											RowPosition = new Point(RowPosition.X + LeftSpam, RowPosition.Y);
-											Size RowSize = new Size(_Column.width, TConfiguration.properties.table.cell_height);
-
-											CellText = AplicarFormato(SummaryData[SumaryIndex], _Summary.format, _Column.type); //Calcular el Valor
-											TextSize = g.MeasureString(CellText, Fuente);
-											CellBox = new Rectangle(RowPosition, RowSize);
-
-											switch (_Column.align)
-											{
-												case "left":
-													TextPosition = new Point(
-													   RowPosition.X + 4,
-													   Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-												   ); break;
-												case "center":
-													TextPosition = new Point(
-													  Convert.ToInt32((CellBox.Width - TextSize.Width) / 2) + RowPosition.X,
-													  Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-												  ); break;
-												case "right":
-													TextPosition = new Point(
-													  Convert.ToInt32((CellBox.Width - TextSize.Width) - 4) + RowPosition.X,
-													  Convert.ToInt32((CellBox.Height - TextSize.Height) / 2) + RowPosition.Y
-												  ); break;
-											}
-
-											g.FillRectangle(BackgroundBrush, CellBox);    //<- El Fondo
-											g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-											g.DrawString(CellText,                       //<- El Texto 
-												Fuente,
-												TextBrush,
-												TextPosition);
-
-											RowPosition.Y = CellBox.Location.Y + CellBox.Height;
+											FieldValue = GetExpressionValue(_Column.field, _Column, _RowData);
 										}
-										ColIndex++;
+										else
+										{
+											var propertyInfo = System.ComponentModel.TypeDescriptor.
+												GetProperties((object)_RowData).
+												Find(_Column.field, true);
+
+											FieldName = propertyInfo.Name;
+											FieldValue = propertyInfo.GetValue(_RowData);
+										}
+
+										CellText = AplicarFormato(FieldValue, _Column.format, _Column.type);
+										TextSize = g.MeasureString(CellText, DataRows_Font);
+										RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+													  Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+										CellBox = new Rectangle(RowPosition, RowSize);
+										TextPosition = AlinearTexto(CellBox, TextSize, _Column.align);
+
+										g.FillRectangle(DataRows_BackColor, CellBox);    //<- El Fondo
+										g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+										g.DrawString(CellText, DataRows_Font, DataRows_TextColor, TextPosition);  //<- El Texto 
+
+										RowPosition.X = CellBox.Location.X + CellBox.Width;
+										RowPosition.Y = StartPos.Y;
 									}
-									SumaryIndex++;
+
+									// Registra la Posicion final (el principio de la siguiente Fila):
+									StartPos.Y = CellBox.Location.Y + CellBox.Height;
 								}
 							}
-						}
+							else
+							{
+								//There is NO data to show
+								// Only draw 1 row of empty columns
+								RowPosition = new Point(StartPos.X, StartPos.Y);
 
-						//Registra la Posicion final (el principio de la siguiente Fila):
-						StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
+								foreach (var _Column in TConfiguration.columns)
+								{
+									CellText = string.Empty;
+									TextSize = g.MeasureString(CellText, ColumnHeaders_Font);
 
-						#endregion
+									RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+										Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+									CellBox = new Rectangle(RowPosition, RowSize);
 
-						#region Footer
+									TextPosition = AlinearTexto(CellBox, TextSize);
 
-						if (TConfiguration.footer != null)
-						{
-							//1. Crea la Caja para el Header:
-							CellBox = new Rectangle(StartPos.X + 2, StartPos.Y + 2,
-								TConfiguration.footer.width,
-								TConfiguration.properties.table.cell_height);
+									g.FillRectangle(DataRows_BackColor, CellBox);    //<- El Fondo
+									g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+									g.DrawString(CellText,                        //<- El Texto 
+										ColumnHeaders_Font,
+										ColumnHeaders_TextColor,
+										TextPosition);
 
-							//2. Obtiene el tamaño del Texto en pixeles:
-							TextSize = g.MeasureString(TConfiguration.footer.title, Fuente);
+									RowPosition.X = CellBox.X + CellBox.Width;
+									ColunmPositions.Add(CellBox.X);
+								}
 
-							//3. Calcula la posicion para centrar el Texto:
-							TextPosition = new Point(
-								Convert.ToInt32((CellBox.Width - TextSize.Width) / 2),
-								Convert.ToInt32((CellBox.Location.Y - TextSize.Height) / 2) + 4
-							);
-
-							//4. Dibuja el Header:
-							BackgroundBrush = new SolidBrush(StringToColor(TConfiguration.footer.backcolor_argb));
-							TextBrush = new SolidBrush(StringToColor(TConfiguration.footer.forecolor_argb));
-
-							g.FillRectangle(BackgroundBrush, CellBox);    //<- El Fondo
-							g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-							g.DrawString(TConfiguration.footer.title,       //<- El Texto 
-								Fuente,
-								TextBrush,
-								new Point(TextPosition.X, CellBox.Location.Y + 6)
-							);
+								// Registra la Posicion final (el principio de la siguiente Fila):
+								StartPos.Y = CellBox.Location.Y + CellBox.Height;
+							}
+							#endregion
 
 							//Registra la Posicion final (el principio de la siguiente Fila):
 							StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
@@ -1344,9 +1759,145 @@ namespace TextDataTable
 
 						#endregion
 
+						#region Table Summary
+
+						if (TConfiguration.summary != null && TConfiguration.summary.Count > 0)
+						{
+							List<decimal> SummaryData = GetSummaryValues(TConfiguration.summary, DataSource);
+							if (SummaryData != null)
+							{
+								int SumaryIndex = 0;
+								foreach (var _Summary in TConfiguration.summary)
+								{
+									ColIndex = 0;
+									
+									int LeftSpam = 0;
+
+									CellText = string.Empty;
+									RowPosition = new Point(StartPos.X, StartPos.Y);
+
+									foreach (var _Column in TConfiguration.columns)
+									{
+										if (_Column.field == _Summary.field)
+										{
+											LeftSpam = ColunmPositions[ColIndex];
+											RowPosition = new Point(LeftSpam, RowPosition.Y);
+
+											CellText = AplicarFormato(SummaryData[SumaryIndex], _Summary.format, _Column.type);
+											TextSize = g.MeasureString(CellText, DataRows_Font);
+											RowSize = new Size(_Column.width, //<- Column width is constant as defined but row Height is ajusted to the font if needed
+													  Math.Max(TConfiguration.properties.table.data_rows.cell_height, (int)TextSize.Height));
+											CellBox = new Rectangle(RowPosition, RowSize);
+											TextPosition = AlinearTexto(CellBox, TextSize, _Column.align);
+
+											g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+											g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+											g.DrawString(CellText,                       //<- El Texto 
+												DataRows_Font,
+												ColumnHeaders_TextColor,
+												TextPosition);
+
+											RowPosition.Y = CellBox.Location.Y + CellBox.Height;
+
+											CellBoxMappings.Add(new ImageMapping(ColIndex, SumaryIndex)
+											{
+												ElementType = TableElements.TABLE_SUMMARY,
+												RawValue = SummaryData[SumaryIndex],
+
+												CellText = CellText,
+												CellBox = CellBox,
+
+												Column = _Column,
+												Row = _Summary
+											});
+										}
+										ColIndex++;
+									}
+									SumaryIndex++;
+								}
+
+								// Registra la Posicion final (el principio de la siguiente Fila):
+								StartPos.Y = CellBox.Location.Y + CellBox.Height;
+								StartPos.Y += Margin;
+							}
+						}
+
+						//Registra la Posicion final (el principio de la siguiente Fila):
+						StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
+
+						#endregion
+
+						#region Table Footer
+
+						if (TConfiguration.footer != null)
+						{
+							HeaderFooter_Font = TConfiguration.footer.font.ToFont();
+							HeaderFooter_TextColor = new SolidBrush(StringToColor(TConfiguration.footer.colors.forecolor_argb));
+							HeaderFooter_BackColor = new SolidBrush(StringToColor(TConfiguration.footer.colors.backcolor_argb));
+
+							TextSize = g.MeasureString(TConfiguration.footer.title, HeaderFooter_Font);
+							RowSize = new Size(0, 0);
+
+							if (TConfiguration.footer.size.use_whole_row)
+							{
+								RowSize = new Size(
+									TableSize,
+									Math.Max(TConfiguration.footer.size.height, (int)TextSize.Height)
+								);
+							}
+							else
+							{
+								//If the specified Footer size is insuficient, it gets fixed to the Text Size:
+								RowSize = new Size(
+									Math.Max(TConfiguration.footer.size.width, (int)TextSize.Width),
+									Math.Max(TConfiguration.footer.size.height, (int)TextSize.Height)
+								);
+							}
+							
+							//The Footer gets Centered respect to the Table's Body:
+							RowPosition = new Point(
+								Convert.ToInt32(StartPos.X + ((TableSize - RowSize.Width) / 2)),
+								StartPos.Y
+							);
+							CellBox = new Rectangle(RowPosition, RowSize);
+							TextPosition = AlinearTexto(CellBox, TextSize, TConfiguration.footer.text_align);
+
+							g.FillRectangle(HeaderFooter_BackColor, CellBox);    //<- El Fondo
+							g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+							g.DrawString(TConfiguration.footer.title,       //<- El Texto 
+								HeaderFooter_Font,
+								HeaderFooter_TextColor,
+								TextPosition
+							);
+
+							//Registra la Posicion final (el principio de la siguiente Fila):
+							StartPos.Y = CellBox.Location.Y + CellBox.Height + 12;
+
+							CellBoxMappings.Add(new ImageMapping(ColIndex, 0)
+							{
+								ElementType = TableElements.TABLE_FOOTER,
+								RawValue = TConfiguration.footer.title,
+
+								CellText = TConfiguration.footer.title,
+								CellBox = CellBox,
+
+								Column = TConfiguration.footer,
+								Row = null
+							});
+						}
+
+						#endregion
+
+						Console.WriteLine(StartPos.Y); //<- Height in Pixels of all the drawn elements
+						if (pImageSize.Height < StartPos.Y)
+						{
+							MessageBox.Show(string.Format("The Image Height is Insuficient!\r\nShould be {0}px at least.", StartPos.Y));
+						}
 
 						g.Flush();
 						image = new Bitmap(image);
+
+						Console.WriteLine(CellBoxMappings.Count);
 					}
 				}
 			}
@@ -1356,6 +1907,8 @@ namespace TextDataTable
 			}
 			return image;
 		}
+
+
 
 		/// <summary>Filters the data using JSONPath expressions.</summary>
 		/// <param name="Criteria">JSONPath expression to Filter the data.</param>
@@ -1367,16 +1920,16 @@ namespace TextDataTable
 			{
 				if (Criteria != null && Criteria != string.Empty)
 				{
-				/* WE ARE USING 'JSONPath' TO DO THE FILTERING because i was unable to make it work with Linq */
-				//https://www.newtonsoft.com/json/help/html/SelectToken.htm
-				//https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm
-				//https://www.newtonsoft.com/json/help/html/QueryingLINQtoJSON.htm
+					/* WE ARE USING 'JSONPath' TO DO THE FILTERING because i was unable to make it work with Linq */
+					//https://www.newtonsoft.com/json/help/html/SelectToken.htm
+					//https://www.newtonsoft.com/json/help/html/QueryJsonSelectTokenJsonPath.htm
+					//https://www.newtonsoft.com/json/help/html/QueryingLINQtoJSON.htm
 
-					  //https://goessner.net/articles/JsonPath/
-					  //https://docs.hevodata.com/sources/streaming/rest-api/writing-jsonpath-expressions/
-					  //https://docs.mashery.com/connectorsguide/GUID-751D8687-F803-460A-BC76-67A37779BE7A.html
-					  //https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-01.html
-					  //http://jsonpath.com/
+					//https://goessner.net/articles/JsonPath/
+					//https://docs.hevodata.com/sources/streaming/rest-api/writing-jsonpath-expressions/
+					//https://docs.mashery.com/connectorsguide/GUID-751D8687-F803-460A-BC76-67A37779BE7A.html
+					//https://www.ietf.org/archive/id/draft-ietf-jsonpath-base-01.html
+					//http://jsonpath.com/
 
 					//Examples:
 					//$[?(@.system_name == 'HR 1201')]
@@ -1485,6 +2038,33 @@ namespace TextDataTable
 			{
 				if (pSearchString != null && pSearchString != string.Empty)
 				{
+					List<string> Fields = new List<string>();
+					foreach (var _Column in TConfiguration.columns)
+					{
+						Fields.Add(_Column.field);
+					}
+
+					_ret = QuickSearch(pSearchString, Apply, Fields.ToArray());
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
+
+		/// <summary>Do a quick Text Search on selected fields (up to 10) querying for the Search String.</summary>
+		/// <param name="pSearchString">Text to query for. Culture Invariant Case Insensitive.</param>
+		/// <param name="Apply">If true, the Filtered data becomes the Data to show on the Table. Need to call the 'Build' table method.</param>
+		/// <param name="pFields">List of Fields were to Search</param>
+		public List<dynamic> QuickSearch(string pSearchString, bool Apply = false, params string[] pFields)
+		{
+			List<dynamic> _ret = null;
+			try
+			{
+				if (pSearchString != null && pSearchString != string.Empty)
+				{
 					if (OriginalData != null && OriginalData.Count > 0)
 					{
 						//1. Convert the Data into a JSon Array (JArray):
@@ -1512,112 +2092,112 @@ namespace TextDataTable
 
 						/* I could not make an Expression builder for dynamic data, therefore... this: */
 
-						switch (TConfiguration.columns.Count)
+						switch (pFields.Length)
 						{
 							case 1:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString)
 										  select DataRow;
 								break;
 							case 2:
 								Results = from DataRow in JSonData
 										  where
-										  CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-										  CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString)
+										  CompareStrings(DataRow[pFields[0]], pSearchString) ||
+										  CompareStrings(DataRow[pFields[1]], pSearchString)
 										  select DataRow;
 								break;
 							case 3:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString)
 										  select DataRow;
 								break;
 							case 4:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString)
 										  select DataRow;
 								break;
 							case 5:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString)
 										  select DataRow;
 								break;
 							case 6:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString) ||
+											CompareStrings(DataRow[pFields[5]], pSearchString)
 										  select DataRow;
 								break;
 							case 7:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString) ||
+											CompareStrings(DataRow[pFields[5]], pSearchString) ||
+											CompareStrings(DataRow[pFields[6]], pSearchString)
 										  select DataRow;
 								break;
 							case 8:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString) ||
+											CompareStrings(DataRow[pFields[5]], pSearchString) ||
+											CompareStrings(DataRow[pFields[6]], pSearchString) ||
+											CompareStrings(DataRow[pFields[7]], pSearchString)
 										  select DataRow;
 								break;
 							case 9:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[8].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString) ||
+											CompareStrings(DataRow[pFields[5]], pSearchString) ||
+											CompareStrings(DataRow[pFields[6]], pSearchString) ||
+											CompareStrings(DataRow[pFields[7]], pSearchString) ||
+											CompareStrings(DataRow[pFields[8]], pSearchString)
 										  select DataRow;
 								break;
 
 							default: //Searching is limited to the first 10 columns:
 								Results = from DataRow in JSonData
 										  where
-											CompareStrings(DataRow[TConfiguration.columns[0].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[1].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[2].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[3].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[4].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[5].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[6].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[7].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[8].field], pSearchString) ||
-											CompareStrings(DataRow[TConfiguration.columns[9].field], pSearchString)
+											CompareStrings(DataRow[pFields[0]], pSearchString) ||
+											CompareStrings(DataRow[pFields[1]], pSearchString) ||
+											CompareStrings(DataRow[pFields[2]], pSearchString) ||
+											CompareStrings(DataRow[pFields[3]], pSearchString) ||
+											CompareStrings(DataRow[pFields[4]], pSearchString) ||
+											CompareStrings(DataRow[pFields[5]], pSearchString) ||
+											CompareStrings(DataRow[pFields[6]], pSearchString) ||
+											CompareStrings(DataRow[pFields[7]], pSearchString) ||
+											CompareStrings(DataRow[pFields[8]], pSearchString) ||
+											CompareStrings(DataRow[pFields[9]], pSearchString)
 										  select DataRow;
 								break;
 						}
@@ -1637,13 +2217,19 @@ namespace TextDataTable
 
 							//If true, the Filtered data becomes the Data to show on the Table
 							//Need to call the 'Build_Table..' method to actually draw the Table.
-							if (Apply) DataSource = _ret;
+							if (Apply)
+							{
+								DataSource = _ret;
+							}
 						}
 						else
 						{
 							//No Data Found for the Filter, Returns an Empty (not Null) List:
 							_ret = new List<dynamic>();
-							if (Apply) DataSource = _ret;
+							if (Apply)
+							{
+								DataSource = _ret;
+							}
 						}
 					}
 					else
@@ -1710,9 +2296,32 @@ namespace TextDataTable
 			catch (Exception ex) { throw ex; }
 		}
 
+		/// <summary>Returns the Information of the Cell that cointains the indicated Pixel.</summary>
+		/// <param name="Pixel">Coordinates of the pixel to look for.</param>
+		public ImageMapping GetPixelInfo(Point Pixel)
+		{
+			ImageMapping _ret = null;				 
+			try
+			{
+				if (this.CellBoxMappings != null && this.CellBoxMappings.Count > 0)
+				{
+					foreach (var item in this.CellBoxMappings)
+					{
+						if (item.IsPixelInBox(Pixel))
+						{
+							_ret = item;
+							break;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
 		#endregion
-
-	
 
 		#region Utility Methods
 
@@ -1933,7 +2542,10 @@ namespace TextDataTable
 			return _ret;
 		}
 
-
+		/// <summary>Text Alignment for Text Tables Only.</summary>
+		/// <param name="pText">Text String</param>
+		/// <param name="MaxLenght">Column Width</param>
+		/// <param name="pAlign">'left', 'center' or 'right', default: 'center'</param>
 		private string AlinearTexto(string pText, int MaxLenght, string pAlign = "center")
 		{
 			string _ret = string.Empty;
@@ -1974,6 +2586,45 @@ namespace TextDataTable
 			int padLeft = spaces / 2 + source.Length;
 			return source.PadLeft(padLeft, Fill).PadRight(length, Fill);
 
+		}
+
+		/// <summary>Text Alignment for Image Tables Only.</summary>
+		/// <param name="Box">The Cell containing the Text</param>
+		/// <param name="TextSize">Size of the Text</param>
+		/// <param name="Alignment">'left', 'center' or 'right', default: 'center'</param>
+		/// <param name="Padding">Horizontal Padding, default 2px.</param>
+		public Point AlinearTexto(Rectangle Box, SizeF TextSize, string Alignment = "center", int Padding = 2)
+		{
+			Point TextPosition = new Point(0, 0);
+			try
+			{
+				switch (Alignment)
+				{
+					case "left":
+						TextPosition = new Point(
+							Box.X + Padding,
+							Convert.ToInt32((Box.Height - TextSize.Height) / 2) + Box.Y
+						);
+						break;
+					case "right":
+						TextPosition = new Point(
+							  Convert.ToInt32(Box.X + (Box.Width - TextSize.Width) - Padding),
+							  Convert.ToInt32((Box.Height - TextSize.Height) / 2) + Box.Y
+						  );
+						break;
+					default:
+						TextPosition = new Point(
+							Convert.ToInt32((Box.Width - TextSize.Width) / 2) + Box.X,
+							Convert.ToInt32((Box.Height - TextSize.Height) / 2) + Box.Y
+						);
+						break;
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return TextPosition;
 		}
 
 		private string AplicarFormato(object pValue, dynamic pColumn)
@@ -2571,7 +3222,9 @@ namespace TextDataTable
 		{
 			var predicate = PredicateBuilder.False<Newtonsoft.Json.Linq.JToken>();
 			foreach (string keyword in keywords)
+			{
 				predicate = predicate.Or(p => p.ToString().Contains(keyword));
+			}
 
 			return predicate;
 		}

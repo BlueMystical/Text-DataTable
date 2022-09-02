@@ -2,6 +2,7 @@
   "properties": {
     "font": {
       "font_name": "Courier New",
+      "font_style": "Regular",
       "font_size": 12
     },
     "borders": {
@@ -61,19 +62,50 @@
       ]
     },
     "table": {
-      "backcolor_argb": "128, 0, 0, 0",
-      "forecolor_argb": "255, 255, 106, 0",
-      "cell_padding": 1,
-      "cell_height": 30
+      "column_headers": {
+        "cell_padding": 1,
+        "cell_height": 30,
+        "colors": {
+          "backcolor_argb": "128, 0, 0, 100",
+          "forecolor_argb": "255, 1, 255, 1"
+        },
+        "font": {
+          "font_name": "Courier New",
+          "font_style": "Regular",
+          "font_size": 12
+        }
+      },
+      "data_rows": {
+        "cell_padding": 1,
+        "cell_height": 30,
+        "colors": {
+          "backcolor_argb": "128, 0, 0, 0",
+          "forecolor_argb": "255, 255, 106, 0"
+        },
+        "font": {
+          "font_name": "Courier New",
+          "font_style": "Regular",
+          "font_size": 10
+        }
+      }
     }
   },
   "header": {
     "title": "BLUE'S NAV ROUTE v0.1",
-    "width": 100,
-    "length": 27,
-    "align": "center",
-    "backcolor_argb": "128, 0, 0, 0",
-    "forecolor_argb": "255,255,255,255"
+    "text_align": "center",
+    "size": {
+      "width": 250,
+      "length": 27
+    },
+    "colors": {
+      "backcolor_argb": "128, 0, 0, 0",
+      "forecolor_argb": "255,255,255,255"
+    },
+    "font": {
+      "font_name": "Arial",
+      "font_style": "Bold",
+      "font_size": 12
+    }
   },
   "columns": [
     {
@@ -134,60 +166,79 @@
     "enabled": true,
     "fields": [
       "scoop"
-    ]
-  },
-    "summary": [
-      {
-        "field": "jumps",
-        "agregate": "FIRST",
-        "format": "{0:00}"
-      },
-      {
-        "field": "jump_len",
-        "agregate": "SUM",
-        "format": "{0:00.00} ly"
-      },
-      {
-        "field": "star_type",
-        "agregate": "COUNT",
-        "format": "{0:n0} registers."
-      }
     ],
-    "footer": {
-      "title": "Total Distance:  69,10 ly ",
-      "width": 300,
-      "length": 35,
-      "forecolor_argb": "255,255,255,255",
-      "backcolor_argb": "128, 0, 0, 0"
+    "colors": {
+      "backcolor_argb": "128, 143, 0, 255",
+      "forecolor_argb": "255,255,255,255"
     },
-    "data": [
-      {
-        "system_name": "HIP 20485",
-        "jumps": 3,
-        "jump_len": 0.0,
-        "star_type": "K (Yellow-Orange) Star",
-        "scoop": true
-      },
-      {
-        "system_name": "HR 1201",
-        "jumps": 2,
-        "jump_len": 26.3478,
-        "star_type": "F (White) Star",
-        "scoop": false
-      },
-      {
-        "system_name": "Zhonvenk",
-        "jumps": 1,
-        "jump_len": 24.97132,
-        "star_type": "M (Red dwarf) Star",
-        "scoop": true
-      },
-      {
-        "system_name": "GCRV 1568",
-        "jumps": 0,
-        "jump_len": 17.79667,
-        "star_type": "G (White-Yellow) Star",
-        "scoop": false
-      }
-    ]
-  }
+    "font": {
+      "font_name": "Verdana",
+      "font_style": "Regular",
+      "font_size": 12
+    }
+  },
+  "summary": [
+    {
+      "field": "jumps",
+      "agregate": "FIRST",
+      "format": "{0:00}"
+    },
+    {
+      "field": "jump_len",
+      "agregate": "SUM",
+      "format": "{0:00.00} ly"
+    },
+    {
+      "field": "star_type",
+      "agregate": "COUNT",
+      "format": "{0:n0} registers."
+    }
+  ],
+  "footer": {
+    "title": "Copyright - BlueMystic 2022",
+    "text_align": "right",
+    "size": {
+      "use_whole_row": true,
+      "length": 40
+    },
+    "colors": {
+      "backcolor_argb": "128, 0, 0, 0",
+      "forecolor_argb": "255,255,255,255"
+    },
+    "font": {
+      "font_name": "Segoe UI",
+      "font_style": "Regular",
+      "font_size": 10
+    }
+  },
+  "data": [
+    {
+      "system_name": "HIP 20485",
+      "jumps": 3,
+      "jump_len": 0.0,
+      "star_type": "K (Yellow-Orange) Star",
+      "scoop": true
+    },
+    {
+      "system_name": "HR 1201",
+      "jumps": 2,
+      "jump_len": 26.3478,
+      "star_type": "F (White) Star",
+      "scoop": false
+    },
+    {
+      "system_name": "Zhonvenk",
+      "jumps": 1,
+      "jump_len": 24.97132,
+      "star_type": "M (Red dwarf) Star",
+      "scoop": true
+    },
+    {
+      "system_name": "GCRV 1568",
+      "jumps": 0,
+      "jump_len": 17.79667,
+      "star_type": "G (White-Yellow) Star",
+      "scoop": false
+    }
+  ]
+}

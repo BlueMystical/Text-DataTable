@@ -58,6 +58,23 @@ namespace TextDataTable
 			myImageTable.Save(@"C:\Temp\myImage.png", System.Drawing.Imaging.ImageFormat.Png);
 
 			System.Diagnostics.Process.Start(@"C:\Temp\myImage.png");
+
+			//You can get Information from the Image Mapping:
+			var PixelInfo = myTable.GetPixelInfo(new Point(279,160));
+			if (PixelInfo != null)
+			{
+				Console.WriteLine(string.Format("You Clicked on a '{0}' who has the '{1}' value.", 
+					PixelInfo.ElementType.ToString(), PixelInfo.CellText));
+
+				if (PixelInfo.ElementType == TableElements.DATA_ROW)
+				{
+					dynamic data = myTable.OriginalData[(dynamic)PixelInfo.Row];
+					Console.WriteLine(data[((Column)PixelInfo.Column).field]);
+					data[((Column)PixelInfo.Column).field] = 40.4m;
+
+					myTable.OriginalData[PixelInfo.col_index] = data;
+				}
+			}
 		}
 
 		private void cmdDataEditor_Click(object sender, EventArgs e)
