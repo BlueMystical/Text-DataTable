@@ -12,7 +12,7 @@ namespace TextDataTable.Forms
 		private List<Column> Fields { get; set; }
 		public string JSON_Expression { get; set; }
 		private List<dynamic> DataSource { get; set; }
-		public List<dynamic> OriginalData { get; set; }		
+		public dynamic OriginalData { get; set; }		
 		public List<FilterCriteria> Criteria { get; set; }
 
 		/// <summary>Temporary holds the Data for Filtering purposes.</summary>
@@ -23,7 +23,7 @@ namespace TextDataTable.Forms
 
 		#region Form Constructors
 
-		public FilterEditor(List<Column> pFields, List<dynamic> pOriginalData)
+		public FilterEditor(List<Column> pFields, dynamic pOriginalData)
 		{
 			InitializeComponent();
 			this.Fields = pFields;

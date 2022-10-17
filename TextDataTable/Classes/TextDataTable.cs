@@ -34,7 +34,9 @@ namespace TextDataTable
 		/// <summary>Set or Return the Un-Sorted, un-grouped Original Data.
 		/// <para>Use 'RefreshData()' method to Restore the Shown Data to it's Original.</para>
 		/// <para>Use 'RefreshData(newData)' to set a new DataSet</para></summary>
-		public List<dynamic> OriginalData { get; set; }
+		public dynamic OriginalData { get; set; }
+
+		public List<dynamic> WorkingData { get; set; }
 
 		/// <summary>Stores Information about every CellBox in the Table.
 		/// <para>Useful for Pixel Mapping over the Image, Call 'GetPixelInfo' method.</para></summary>
@@ -2266,24 +2268,29 @@ namespace TextDataTable
 		{
 			try
 			{
-				if (pNewData != null)
-				{
-					//Convierte 'Newtonsoft.Json.Linq.JArray' a 'List<dynamic>':
-					if (pNewData is Newtonsoft.Json.Linq.JArray)
-					{
-						OriginalData = pNewData.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
-					}
-					else
-					{
-						OriginalData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(
-											Newtonsoft.Json.JsonConvert.SerializeObject(pNewData)
-										);
-					}
-				}
+				//if (pNewData != null)
+				//{
+				//	Console.WriteLine(pNewData);
+
+				//	//Convierte 'Newtonsoft.Json.Linq.JArray' a 'List<dynamic>':
+				//	if (pNewData is Newtonsoft.Json.Linq.JArray)
+				//	{
+				//		OriginalData = pNewData.ToObject<List<dynamic>>(); //<- Preserves the Un-Sorted Data.
+				//	}
+				//	else
+				//	{
+				//		OriginalData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(
+				//							Newtonsoft.Json.JsonConvert.SerializeObject(pNewData)
+				//						);
+				//	}
+					
+				//}
 
 				//Updates the Shown DataSet with new data:
-				if (OriginalData != null && OriginalData.Count > 0)
+				if (pNewData != null && pNewData.Count > 0)
 				{
+					Console.WriteLine(pNewData);
+					OriginalData = pNewData;
 					DataSource = OriginalData;
 
 					JSonData = Newtonsoft.Json.Linq.JArray.FromObject(
@@ -2291,6 +2298,15 @@ namespace TextDataTable
 										Newtonsoft.Json.JsonConvert.SerializeObject(OriginalData)
 									)
 					);
+
+					long Index = 0; 
+					this.WorkingData = new List<dynamic>();
+					Console.WriteLine(JSonData[0].GetType());
+					foreach (var Data in JSonData)
+					{
+						WorkingData.Add(new { Index, Data }); //<- Newtonsoft.Json.Linq.JObject
+						Index++;
+					}
 				}
 			}
 			catch (Exception ex) { throw ex; }
@@ -2321,6 +2337,34 @@ namespace TextDataTable
 			}
 			return _ret;
 		}
+
+		/// <summary>Gets the Index of an element in the 'OriginalData' datasource.</summary>
+		/// <param name="PixelInfo">dynamic JObject to compare</param>
+		public int GetPixelDataIndex(dynamic PixelInfo)
+		{
+			int _ret = -1;
+			try
+			{
+				if (PixelInfo != null && this.OriginalData != null)
+				{
+					int Index = 0;
+					foreach (dynamic data in this.OriginalData)
+					{
+						if (Newtonsoft.Json.Linq.JToken.DeepEquals(data, PixelInfo))
+						{
+							_ret = Index; break;
+						}
+						Index++;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+			return _ret;
+		}
+
 		#endregion
 
 		#region Utility Methods

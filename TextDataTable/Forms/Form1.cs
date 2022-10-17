@@ -60,19 +60,38 @@ namespace TextDataTable
 			System.Diagnostics.Process.Start(@"C:\Temp\myImage.png");
 
 			//You can get Information from the Image Mapping:
+			//Here we simulate a Mouse click Event over the Image to get the Coordinates (X,Y) of a Pixel
+			//Then we get the Information of the 'Cell' under that Pixel
+
 			var PixelInfo = myTable.GetPixelInfo(new Point(279,160));
 			if (PixelInfo != null)
 			{
 				Console.WriteLine(string.Format("You Clicked on a '{0}' who has the '{1}' value.", 
 					PixelInfo.ElementType.ToString(), PixelInfo.CellText));
 
-				if (PixelInfo.ElementType == TableElements.DATA_ROW)
+				//If the pixel is over one of the Rows with Data:
+				if (PixelInfo.ElementType == TableElements.DATA_ROW) //<- There are other Elements you can click on and get info
 				{
-					dynamic data = myTable.OriginalData[(dynamic)PixelInfo.Row];
-					Console.WriteLine(data[((Column)PixelInfo.Column).field]);
-					data[((Column)PixelInfo.Column).field] = 40.4m;
+					/* Obtener y Modificar el Objeto referenciado x 'PixelInfo' */
 
-					myTable.OriginalData[PixelInfo.col_index] = data;
+					//1. Obtener el Indice del Elemento Referenciado:
+					int dataindex = myTable.GetPixelDataIndex((dynamic)PixelInfo.Row);
+
+					//2. Obtener los datos de dicho Indice:
+					var myData = myTable.OriginalData[dataindex];
+
+					//3. Obtener el Valor actual del Campo:
+					Console.WriteLine( myData[((Column)PixelInfo.Column).field] );
+
+					//4. Modificar el Valor del Campo:
+					myData[((Column)PixelInfo.Column).field] = 40.4m;
+
+					//5. Actualizar la Tabla:
+					myTable.OriginalData[dataindex] = myData;
+					myTable.RefreshData();
+
+					//BE AWARE THAT THIS MODIFICATION WAS POST-IMAGE GENERATION, 
+					//you need to re-create the image to see the changes by calling the 'Build_ImageDataTable' method.
 				}
 			}
 		}

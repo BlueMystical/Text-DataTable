@@ -642,9 +642,9 @@ namespace TextDataTable
 	public class Row
 	{
 		Dictionary<string, object> fields = new Dictionary<string, object>();
-		private int rIndex;
+		private long rIndex;
 
-		public Row(int rIndex)
+		public Row(long rIndex)
 		{
 			this.rIndex = rIndex;
 		}
@@ -665,7 +665,7 @@ namespace TextDataTable
 			}
 		}
 
-		public int RIndex
+		public long RIndex
 		{
 			get { return rIndex; }
 			set { rIndex = value; }
