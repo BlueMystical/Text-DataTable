@@ -1,6 +1,7 @@
 ### Text DataTable
 -------------
-C# .NET Windows Forms Solution to Create DataTables made of Ascii Text.</br></br>
+C# .NET Windows Forms Solution to Create DataTables made of Ascii Text.</br>
+Useful for Console Applications, cheap and easy printing reports, or whatever you want.</br></br>
 Autor:          Jhollman Chacon R. (**Blue Mystic**) 2022 (•̀ᴗ•́)و 
 
 Characteristics:
