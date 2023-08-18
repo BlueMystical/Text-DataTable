@@ -1,12 +1,11 @@
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Blue.TextDataTable.dll
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Blue.TextDataTable.pdb
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.dll
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csprojAssemblyReference.cache
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.pdb
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.xml
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.Forms.FilterEditor.resources
+D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.GenerateResource.cache
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.CoreCompileInputs.cache
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.CopyComplete
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.dll
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.pdb
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.GenerateResource.cache
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.Forms.FilterEditor.resources
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.pdb
-D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.xml

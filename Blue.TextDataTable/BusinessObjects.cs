@@ -7,7 +7,84 @@ namespace Blue.TextDataTable
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
 	public class TableConfiguration
 	{
-		public TableConfiguration() { }
+		public TableConfiguration()
+		{
+			properties.font = new Fuente()
+			{
+				font_name = "Courier New",
+				font_size = 12,
+				font_style = System.Drawing.FontStyle.Regular
+			};
+			properties.borders = new Borders()
+			{
+				type = "simple",
+				color_argb = "255, 255, 106, 0",
+			};
+			properties.borders.symbols = new List<SymbolElement>(new SymbolElement[] {
+				// Double Border
+				new SymbolElement()
+				{
+					Top = new SymbolChar()
+					{
+						Left = '╔',
+						Right = '╗',
+						Middle = '╦',
+						Border = '═'
+					},
+					Middle = new SymbolChar()
+					{
+						Left = '╠',
+						Right = '╣',
+						Middle = '╬',
+						Border = '║'
+					},
+					Bottom = new SymbolChar()
+					{
+						Left = '╚',
+						Right = '╝',
+						Middle = '╩',
+						Border = '═'
+					},
+					Sides = new SymbolChar()
+					{
+						Left = '║',
+						Right = '║',
+						Border = '═'
+					},
+				},
+				// Simple Border
+				new SymbolElement()
+				{
+					Top = new SymbolChar()
+					{
+						Left = '┌',
+						Right = '┐',
+						Middle = '┬',
+						Border = '─'
+					},
+					Middle = new SymbolChar()
+					{
+						Left = '├',
+						Right = '┤',
+						Middle = '┼',
+						Border = '│'
+					},
+					Bottom = new SymbolChar()
+					{
+						Left = '└',
+						Right = '┘',
+						Middle = '┴',
+						Border = '─'
+					},
+					Sides = new SymbolChar()
+					{
+						Left = '│',
+						Right = '│',
+						Border = '─'
+					},
+				},
+			});
+		}
 
 		/// <summary>[Required] Behavior Properties of the Table.</summary>
 		[Description("[Required] Behavior Properties of the Table"), Category("Behavior"), DisplayName("Properties")]
@@ -239,8 +316,8 @@ namespace Blue.TextDataTable
 
 		/// <summary>Background Color for the Header/Footer Box, only for ImageTable</summary>
 		[Description("Background Color for the Header/Footer Box, only for ImageTable"),
-		DisplayName("Background Color"), DefaultValue("128, 0, 0, 0"), Category("Appearance")]
-		public string backcolor_argb { get; set; } = "128, 0, 0, 0";
+		DisplayName("Background Color"), DefaultValue("128, 0, 0, 100"), Category("Appearance")]
+		public string backcolor_argb { get; set; } = "128, 0, 0, 100";
 
 		/// <summary>Text Color for the Header/Footer Box, only for ImageTable</summary>
 		[Description("Text Color for the Header/Footer Box, only for ImageTable"),

@@ -15,7 +15,10 @@ namespace Blue.TextDataTable
 	/// Author: Jhollman Chacon (Blue Mystic) - 2022</summary>
 	public class TextDataTable
 	{
-		public TextDataTable() { }
+		public TextDataTable()
+		{		
+
+		}
 		public TextDataTable(string pConfigJsonFile)
 		{
 			ConfigJsonFile = pConfigJsonFile;
@@ -2408,6 +2411,8 @@ namespace Blue.TextDataTable
 
 		#region Utility Methods
 
+		
+
 		/// <summary>Returns 'true' if SearchString Contains pValue.
 		/// <para>Culture Invariant Case Insensitive.</para> </summary>
 		/// <param name="pValue"></param>
@@ -2823,6 +2828,17 @@ namespace Blue.TextDataTable
 		{
 			Newtonsoft.Json.Linq.JObject attributesAsJObject = dynamicToGetPropertiesFor;
 			return attributesAsJObject.ToObject<Dictionary<string, object>>();
+		}
+		public List<string> GetPropertyKeysForDynamicEx(dynamic dynamicToGetPropertiesFor)
+		{
+			JObject attributesAsJObject = dynamicToGetPropertiesFor;
+			Dictionary<string, object> values = attributesAsJObject.ToObject<Dictionary<string, object>>();
+			List<string> toReturn = new List<string>();
+			foreach (string key in values.Keys)
+			{
+				toReturn.Add(key);
+			}
+			return toReturn;
 		}
 
 		/// <summary>Sorts Dynamic data by multiple fields (Up to 4 Columns).</summary>
