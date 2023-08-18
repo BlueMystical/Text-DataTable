@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Blue.TextDataTable.TEST
@@ -177,5 +178,80 @@ namespace Blue.TextDataTable.TEST
 			//After getting the data filtered you need to show it, in this case on the TextTable:
 			textBox1.Text = myTable.Build_TextDataTable();
 		}
+
+		private void cmdLoadJSON_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog OFDialog = new OpenFileDialog()
+			{
+				Filter = "JSON Data|*.json;*.txt",
+				FilterIndex = 0,
+				DefaultExt = "json",
+				AddExtension = true,
+				CheckPathExists = true,
+				CheckFileExists = true,
+				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+			};
+
+			if (OFDialog.ShowDialog() == DialogResult.OK)
+			{
+				List<dynamic> MyData = new List<dynamic>();
+
+				//1. Open and Parse the Json to a Dynamic Array
+				var JsonData = Newtonsoft.Json.Linq.JArray.Parse(
+					System.IO.File.ReadAllText(OFDialog.FileName, System.Text.Encoding.UTF8));
+				foreach (Newtonsoft.Json.Linq.JToken item in JsonData.ToList())
+				{
+					MyData.Add(item.ToObject<dynamic>());
+				}
+
+				//2. Set the new DataSource:
+				var BlueDataTable = new TextDataTable();
+				var BlueDTConfig = new TableConfiguration();
+				
+
+				//----------------------------------------				
+				//3. Get the Field Names from the First Object:
+				var _Fields = GetPropertyKeysForDynamic(MyData[0]);
+
+				//4. Since We completely changed the DataSet, now We need to Update the Column Definitions:
+				BlueDTConfig.columns = new List<Column>();
+				foreach (var prop in _Fields)
+				{
+					string Ttype = prop.Value.GetType().Name.ToLower();
+					BlueDTConfig.columns.Add(new Column(prop.Key, prop.Key)
+					{
+						type = Ttype,
+						width = 250,
+						length = 25
+					});
+				}
+
+				BlueDTConfig.data = MyData;
+				BlueDTConfig.header = new Header("Custom DataSource");
+				BlueDTConfig.footer = null;
+				BlueDTConfig.sorting = null;
+				BlueDTConfig.grouping = null;
+				BlueDTConfig.summary = null;
+
+				BlueDataTable.TConfiguration = BlueDTConfig;
+				BlueDataTable.DataSource = MyData;
+
+				this.Criteria = null;
+				myTable = BlueDataTable;
+				myTable.TConfiguration = BlueDTConfig;
+				myTable.RefreshData(myTable.TConfiguration.data);
+
+				textBox1.Text = myTable.Build_TextDataTable();
+				propertyGrid1.SelectedObject = myTable.TConfiguration;
+			}
+		}
+
+		private Dictionary<string, object> GetPropertyKeysForDynamic(dynamic dynamicToGetPropertiesFor)
+		{
+			Newtonsoft.Json.Linq.JObject attributesAsJObject = dynamicToGetPropertiesFor;
+			return attributesAsJObject.ToObject<Dictionary<string, object>>();
+		}
+
+
 	}
 }

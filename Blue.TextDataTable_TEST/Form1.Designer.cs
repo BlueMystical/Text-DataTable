@@ -46,6 +46,7 @@
 			this.cmdTextTable = new System.Windows.Forms.Button();
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+			this.cmdLoadJSON = new System.Windows.Forms.Button();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_H)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_W)).BeginInit();
@@ -70,6 +71,7 @@
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.cmdLoadJSON);
 			this.panel1.Controls.Add(this.cmdQuickSearch);
 			this.panel1.Controls.Add(this.textBox2);
 			this.panel1.Controls.Add(this.label3);
@@ -254,6 +256,16 @@
 			this.propertyGrid1.Size = new System.Drawing.Size(336, 544);
 			this.propertyGrid1.TabIndex = 0;
 			// 
+			// cmdLoadJSON
+			// 
+			this.cmdLoadJSON.Location = new System.Drawing.Point(1062, 7);
+			this.cmdLoadJSON.Name = "cmdLoadJSON";
+			this.cmdLoadJSON.Size = new System.Drawing.Size(75, 23);
+			this.cmdLoadJSON.TabIndex = 13;
+			this.cmdLoadJSON.Text = "Load Data";
+			this.cmdLoadJSON.UseVisualStyleBackColor = true;
+			this.cmdLoadJSON.Click += new System.EventHandler(this.cmdLoadJSON_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -297,6 +309,7 @@
 		private System.Windows.Forms.Button cmdQuickSearch;
 		private System.Windows.Forms.TextBox textBox2;
 		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Button cmdLoadJSON;
 	}
 }
 

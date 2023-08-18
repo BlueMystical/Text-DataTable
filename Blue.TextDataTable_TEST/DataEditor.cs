@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Blue.TextDataTable.TEST
@@ -293,7 +295,78 @@ namespace Blue.TextDataTable.TEST
 			}
 		}
 
-		
+		private void button1_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog OFDialog = new OpenFileDialog()
+			{
+				Filter = "JSON Data|*.json;*.txt",
+				FilterIndex = 0,
+				DefaultExt = "json",
+				AddExtension = true,
+				CheckPathExists = true,
+				CheckFileExists = true,
+				InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+			};
+
+			if (OFDialog.ShowDialog() == DialogResult.OK)
+			{
+				List<dynamic> MyData = new List<dynamic>();
+
+				//1. Open and Parse the Json to a Dynamic Array
+				var JsonData = Newtonsoft.Json.Linq.JArray.Parse(
+					System.IO.File.ReadAllText(OFDialog.FileName, System.Text.Encoding.UTF8));				
+				foreach (Newtonsoft.Json.Linq.JToken item in JsonData.ToList())
+				{
+					MyData.Add(item.ToObject<dynamic>());
+				}
+
+				//2. Set the new DataSource:
+				this.CustomDataSet = true;
+				this.MyTableConfiguration.data = MyData;
+				this.dataGridView.DataSource = this.MyTableConfiguration.data;
+
+				//----------------------------------------				
+				//3. Get the Field Names from the First Object:
+				var _Fields = GetPropertyKeysForDynamic(MyData[0]);
+
+				//4. Since We completely changed the DataSet, now We need to Update the Column Definitions:
+				this.MyTableConfiguration.columns = new List<Column>();
+				foreach (var prop in _Fields)
+				{
+					string Ttype = prop.Value.GetType().Name.ToLower();
+					this.MyTableConfiguration.columns.Add(new Column(prop.Key, prop.Key)
+					{
+						type = Ttype,
+						width = 250,
+						length = 25
+					});
+				}
+
+				this.MyTableConfiguration.header = new Header("Custom DataSource");
+				this.MyTableConfiguration.footer = null;
+				this.MyTableConfiguration.sorting = null;
+				this.MyTableConfiguration.grouping = null;
+				this.MyTableConfiguration.summary = null;
+			}
+
+		}
+
+		private Dictionary<string, object> GetPropertyKeysForDynamic(dynamic dynamicToGetPropertiesFor)
+		{
+			Newtonsoft.Json.Linq.JObject attributesAsJObject = dynamicToGetPropertiesFor;
+			return attributesAsJObject.ToObject<Dictionary<string, object>>();
+		}
+		public List<string> GetPropertyKeysForDynamicEx(dynamic dynamicToGetPropertiesFor)
+		{
+			Newtonsoft.Json.Linq.JObject attributesAsJObject = dynamicToGetPropertiesFor;
+			Dictionary<string, object> values = attributesAsJObject.ToObject<Dictionary<string, object>>();
+			List<string> toReturn = new List<string>();
+			foreach (string key in values.Keys)
+			{
+				toReturn.Add(key);
+			}
+			return toReturn;
+		}
 	}
 
 	public class myCustomData

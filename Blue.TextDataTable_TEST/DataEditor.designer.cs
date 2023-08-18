@@ -29,6 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.button1 = new System.Windows.Forms.Button();
 			this.cmdCustomData = new System.Windows.Forms.Button();
 			this.cmdApply = new System.Windows.Forms.Button();
 			this.dataGridView = new System.Windows.Forms.DataGridView();
@@ -44,6 +45,7 @@
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.button1);
 			this.panel1.Controls.Add(this.cmdCustomData);
 			this.panel1.Controls.Add(this.cmdApply);
 			this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -52,9 +54,19 @@
 			this.panel1.Size = new System.Drawing.Size(800, 38);
 			this.panel1.TabIndex = 0;
 			// 
+			// button1
+			// 
+			this.button1.Location = new System.Drawing.Point(162, 8);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(75, 23);
+			this.button1.TabIndex = 2;
+			this.button1.Text = "Open File";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.button1_Click);
+			// 
 			// cmdCustomData
 			// 
-			this.cmdCustomData.Location = new System.Drawing.Point(13, 7);
+			this.cmdCustomData.Location = new System.Drawing.Point(13, 8);
 			this.cmdCustomData.Name = "cmdCustomData";
 			this.cmdCustomData.Size = new System.Drawing.Size(132, 23);
 			this.cmdCustomData.TabIndex = 1;
@@ -140,5 +152,6 @@
 		private System.Windows.Forms.SplitContainer splitContainer1;
 		private System.Windows.Forms.TextBox textBox1;
 		private System.Windows.Forms.Button cmdCustomData;
+		private System.Windows.Forms.Button button1;
 	}
 }
