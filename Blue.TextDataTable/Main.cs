@@ -757,111 +757,162 @@ namespace Blue.TextDataTable
 						if (DataSource != null && DataSource.Count > 0)
 						{
 							int DataCount = DataSource.Count;
-							for (int RowIndex = -1; RowIndex < DataCount; RowIndex++)
+							if (true)
 							{
-								//La Primera Fila (RowIndex = -1) es el Cabezal
-								//Las demas son filas de Datos
-
-								string Cell_Top = string.Empty;
-								string Cell_Mid = string.Empty;
-
-								int ColumnIndex = 0;
-								foreach (var _Column in TConfiguration.columns)
+								for (int RowIndex = -1; RowIndex < DataCount; RowIndex++)
 								{
-									//2. Column Headers:
-									//╔════════════════╦═════╦════════╦═══════════════════════╦═══════╗
-									//║  System Name   ║Jumps║ Lenght ║     Star Type         ║ Scoop ║
-									//        0           1      2              3                 4
+									//La Primera Fila (RowIndex = -1) es el Cabezal
+									//Las demas son filas de Datos
 
-									ColumnSize = (int)_Column.length + (Margin * 2);
-									char CornerL = (char)0; //<-Empty
+									string Cell_Top = string.Empty;
+									string Cell_Mid = string.Empty;
 
-									//Determina la Esquina a Usar:
-									if (ColumnIndex == 0)
+									int ColumnIndex = 0;
+									foreach (var _Column in TConfiguration.columns)
 									{
-										//Si es la Primera Columna:
-										CornerL = (RowIndex >= 0) ?
-											Borders.Middle.Left :
-											Borders.Top.Left;
+										//2. Column Headers:
+										//╔════════════════╦═════╦════════╦═══════════════════════╦═══════╗
+										//║  System Name   ║Jumps║ Lenght ║     Star Type         ║ Scoop ║
+										//        0           1      2              3                 4
+
+										ColumnSize = (int)_Column.length + (Margin * 2);
+										char CornerL = (char)0; //<-Empty
+
+										//Determina la Esquina a Usar:
+										if (ColumnIndex == 0) //<- Si es la Primera Columna:
+										{											
+											if (RowIndex < 0) //<- Si es la Primera Fila
+											{
+												CornerL = Borders.Top.Left;												
+											}
+											else
+											{												
+												if (RowIndex == 0)
+												{
+													// Si es la segunda fila (de datos) pero no se muestran los Headers
+													CornerL = (!TConfiguration.properties.table.column_headers.Visible) ?
+														Borders.Top.Left :
+														Borders.Middle.Left;
+												}
+												else
+												{
+													//CornerL = Borders.Middle.Left;
+													CornerL = (RowIndex >= 0) ?
+														Borders.Middle.Left :
+														Borders.Top.Left;
+												}
+											}
+											
+										}
+										else //<- Si es una Columna del Medio:
+										{
+											if (RowIndex == 0)
+											{
+												// Si es la segunda fila (de datos) pero no se muestran los Headers
+												CornerL = (!TConfiguration.properties.table.column_headers.Visible) ?
+													Borders.Top.Middle :
+													Borders.Middle.Middle;
+											}
+											else
+											{
+												CornerL = (RowIndex < 0) ?
+													Borders.Top.Middle :
+													Borders.Middle.Middle;
+											}
+										}
+
+										//Obtiene el Texto de la Celda:
+										if (RowIndex < 0) //Primera Fila para los Headers:
+										{
+											//Aplica el Formato a la Celda:
+											CellText = AlinearTexto(_Column.title, ColumnSize);
+										}
+										else //Fila de Datos:
+										{
+											var RowData = DataSource[RowIndex];
+											string FieldName = string.Empty;
+											object FieldValue = null;
+
+											//Obtiene el Valor de la Celda:	
+											if (_Column.type == "Calculated")
+											{
+												FieldName = _Column.field;
+												FieldValue = GetExpressionValue(_Column.field, _Column, RowData);
+											}
+											else
+											{
+												var propertyInfo = System.ComponentModel.TypeDescriptor.
+													GetProperties((object)RowData).
+													Find(_Column.field, true);
+
+												FieldName = propertyInfo.Name;
+												FieldValue = propertyInfo.GetValue(RowData);
+											}
+
+											//Aplica el Formato a la Celda:
+											CellText = AplicarFormato(FieldValue, _Column);
+											CellText = AlinearTexto(CellText, ColumnSize, _Column.align);
+										}
+
+										//Linea Superior:
+										Cell_Top += string.Format("{0}{1}",
+											CornerL,
+											new string(Convert.ToChar(Borders.Top.Border), ColumnSize)
+										);
+
+										if (ColunmPositions.Count < TConfiguration.columns.Count)
+										{
+											ColunmPositions.Add(Cell_Top.Length);
+										}
+
+										//Lineas Laterales y Texto:
+										Cell_Mid += string.Format("{0}{1}",
+											Borders.Sides.Left.ToString(),
+											CellText
+										);
+
+										//si es la ultima columna, agrega el Borde:
+										if (ColumnIndex >= TConfiguration.columns.Count - 1)
+										{
+											if (RowIndex == 0)
+											{
+												// Si es la segunda fila (de datos) pero no se muestran los Headers
+												if (!TConfiguration.properties.table.column_headers.Visible)
+												{
+													Cell_Top += Convert.ToString(Borders.Top.Right);
+													Cell_Mid += Convert.ToString(Borders.Middle.Border);
+												}
+												else
+												{
+													Cell_Top += Convert.ToString(Borders.Middle.Right);
+													Cell_Mid += Convert.ToString(Borders.Middle.Border);
+												}
+											}
+											else
+											{
+												Cell_Top += (RowIndex >= 0) ? Convert.ToString(Borders.Middle.Right) : Convert.ToString(Borders.Top.Right);
+												Cell_Mid += Convert.ToString(Borders.Middle.Border);
+											}										
+										}
+
+										ColumnIndex++;
 									}
-									else if (ColumnIndex == TConfiguration.columns.Count)
+
+									if (RowIndex < 0)
 									{
-										//si es la ultima columna:
-										CornerL = (RowIndex >= 0) ?
-											Borders.Middle.Right :
-											Borders.Top.Middle;
+										if (TConfiguration.properties.table.column_headers.Visible)
+										{
+											Lines.AppendLine(Cell_Top);
+											Lines.AppendLine(Cell_Mid);
+										}										
 									}
 									else
 									{
-										//Si es una Columna del Medio:
-										CornerL = (RowIndex < 0) ?
-											Borders.Top.Middle :
-											Borders.Middle.Middle;
+										Lines.AppendLine(Cell_Top);
+										Lines.AppendLine(Cell_Mid);
 									}
-
-									//Obtiene el Texto de la Celda:
-									if (RowIndex < 0) //Primera Fila para los Headers:
-									{
-										//Aplica el Formato a la Celda:
-										CellText = AlinearTexto(_Column.title, ColumnSize);
-									}
-									else //Fila de Datos:
-									{
-										var RowData = DataSource[RowIndex];
-										string FieldName = string.Empty;
-										object FieldValue = null;
-
-										//Obtiene el Valor de la Celda:	
-										if (_Column.type == "Calculated")
-										{
-											FieldName = _Column.field;
-											FieldValue = GetExpressionValue(_Column.field, _Column, RowData);
-										}
-										else
-										{
-											var propertyInfo = System.ComponentModel.TypeDescriptor.
-												GetProperties((object)RowData).
-												Find(_Column.field, true);
-
-											FieldName = propertyInfo.Name;
-											FieldValue = propertyInfo.GetValue(RowData);
-										}
-
-										//Aplica el Formato a la Celda:
-										CellText = AplicarFormato(FieldValue, _Column);
-										CellText = AlinearTexto(CellText, ColumnSize, _Column.align);
-									}
-
-									//Linea Superior:
-									Cell_Top += string.Format("{0}{1}",
-										CornerL,
-										new string(Convert.ToChar(Borders.Top.Border), ColumnSize)
-									);
-
-									if (ColunmPositions.Count < TConfiguration.columns.Count)
-									{
-										ColunmPositions.Add(Cell_Top.Length);
-									}
-
-									//Lineas Laterales y Texto:
-									Cell_Mid += string.Format("{0}{1}",
-										Borders.Sides.Left.ToString(),
-										CellText
-									);
-
-									//si es la ultima columna, agrega el Borde:
-									if (ColumnIndex >= TConfiguration.columns.Count - 1)
-									{
-										Cell_Top += (RowIndex >= 0) ? Convert.ToString(Borders.Middle.Right) : Convert.ToString(Borders.Top.Right);
-										Cell_Mid += Convert.ToString(Borders.Middle.Border);
-									}
-
-									ColumnIndex++;
 								}
-
-								Lines.AppendLine(Cell_Top);
-								Lines.AppendLine(Cell_Mid);
-							}
+							}						
 
 							// Dibujar la Linea del Fondo 
 							string Cell_Bottom = Borders.Bottom.Left.ToString();
@@ -873,7 +924,12 @@ namespace Blue.TextDataTable
 							}
 							Cell_Bottom = Cell_Bottom.Substring(0, Cell_Bottom.Length - 1);
 							Cell_Bottom += Convert.ToString(Borders.Bottom.Right);
+
 							Lines.AppendLine(Cell_Bottom);
+							//if (TConfiguration.properties.table.column_headers.Visible && RowIndex >= 0)
+							//{
+								
+							//}
 
 							TableSize = Cell_Bottom.Length;
 						}
@@ -1654,13 +1710,16 @@ namespace Blue.TextDataTable
 								CellBox = new Rectangle(RowPosition, RowSize);
 
 								TextPosition = AlinearTexto(CellBox, TextSize);
-
-								g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
-								g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
-								g.DrawString(CellText,                        //<- El Texto 
-									ColumnHeaders_Font,
-									ColumnHeaders_TextColor,
-									TextPosition);
+																
+								if (TConfiguration.properties.table.column_headers.Visible)
+								{
+									g.FillRectangle(ColumnHeaders_BackColor, CellBox);    //<- El Fondo
+									g.DrawRectangle(BorderPen, CellBox);          //<- El Borde
+									g.DrawString(CellText,                        //<- El Texto 
+										ColumnHeaders_Font,
+										ColumnHeaders_TextColor,
+										TextPosition);
+								}
 
 								RowPosition.X = CellBox.X + CellBox.Width;
 								ColunmPositions.Add(CellBox.X);

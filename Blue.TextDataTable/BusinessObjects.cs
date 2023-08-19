@@ -244,6 +244,10 @@ namespace Blue.TextDataTable
 			font_style = System.Drawing.FontStyle.Regular,
 			font_size = 12
 		};
+
+		/// <summary>Show or hide the Column Headers.</summary>
+		[DisplayName("Visible"), Description("Show or hide the Column Headers."), Category("Appearance")]
+		public bool Visible { get; set; } = true;
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
