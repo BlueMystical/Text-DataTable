@@ -17,6 +17,7 @@ namespace Blue.TextDataTable.TEST
 		public Form1()
 		{
 			InitializeComponent();
+			//System.ComponentModel.TypeDescriptor.AddProvider(new StringArrayDescriptionProvider(), typeof(List<string>));
 		}
 
 		private void Form1_Load(object sender, EventArgs e)
@@ -214,7 +215,7 @@ namespace Blue.TextDataTable.TEST
 				var _Fields = GetPropertyKeysForDynamic(MyData[0]);
 
 				//4. Since We completely changed the DataSet, now We need to Update the Column Definitions:
-				BlueDTConfig.columns = new List<Column>();
+				BlueDTConfig.columns = new System.ComponentModel.BindingList<Column>(); // new List<Column>();
 				foreach (var prop in _Fields)
 				{
 					string Ttype = prop.Value.GetType().Name.ToLower();

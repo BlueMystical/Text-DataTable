@@ -206,7 +206,8 @@ namespace Blue.TextDataTable.TEST
 				this.dataGridView.DataSource = this.MyTableConfiguration.data;
 
 				//Since We completely changed the DataSet, now We need to Update the Column Definitions:
-				this.MyTableConfiguration.columns = new List<Column>(new Column[] {
+				this.MyTableConfiguration.columns = new System.ComponentModel.BindingList<Column>(new Column[] {
+				//this.MyTableConfiguration.columns = new List<Column>(new Column[] {
 					new Column("Field1","Field 1")
 					{
 						type = "int",
@@ -258,7 +259,7 @@ namespace Blue.TextDataTable.TEST
 				});
 
 				//Lets add a Summary Field: (This is Optional)
-				this.MyTableConfiguration.summary = new List<Summary>()
+				this.MyTableConfiguration.summary = new System.ComponentModel.BindingList<Summary>() // new List<Summary>()
 				{
 					new Summary("Field3", "SUM")
 					{
@@ -277,7 +278,7 @@ namespace Blue.TextDataTable.TEST
 				/* ENABLE AND SORT THE DATA BY 2 FIELDS  */
 				this.MyTableConfiguration.sorting = new Sorting(true)
 				{
-					fields = new List<string>(new string[] {
+					fields = new System.ComponentModel.BindingList<string>(new string[] {  // new List<string>(new string[] {
 						"Field1 DESC",
 						"Field3" //<- 'ASC' is default
 					})
@@ -288,9 +289,10 @@ namespace Blue.TextDataTable.TEST
 				{
 					repeat_column_headers = false,
 					show_summary = true,
-					fields = new List<string>(new string[] {
-						"Field2", "ColorField"
-					})
+					fields = new System.ComponentModel.BindingList<string>()
+					//fields = new List<string>(new string[] {
+					//	"Field2", "ColorField"
+					//})
 				};
 			}
 		}
@@ -330,7 +332,7 @@ namespace Blue.TextDataTable.TEST
 				var _Fields = GetPropertyKeysForDynamic(MyData[0]);
 
 				//4. Since We completely changed the DataSet, now We need to Update the Column Definitions:
-				this.MyTableConfiguration.columns = new List<Column>();
+				this.MyTableConfiguration.columns = new System.ComponentModel.BindingList<Column>();// new List<Column>();
 				foreach (var prop in _Fields)
 				{
 					string Ttype = prop.Value.GetType().Name.ToLower();

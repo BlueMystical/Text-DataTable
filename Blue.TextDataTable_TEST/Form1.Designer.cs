@@ -31,6 +31,7 @@
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
 			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.cmdLoadJSON = new System.Windows.Forms.Button();
 			this.cmdQuickSearch = new System.Windows.Forms.Button();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.label3 = new System.Windows.Forms.Label();
@@ -46,7 +47,6 @@
 			this.cmdTextTable = new System.Windows.Forms.Button();
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
-			this.cmdLoadJSON = new System.Windows.Forms.Button();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_H)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.imgSize_W)).BeginInit();
@@ -59,7 +59,7 @@
 			// textBox1
 			// 
 			this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.textBox1.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.textBox1.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.textBox1.Location = new System.Drawing.Point(0, 0);
 			this.textBox1.Multiline = true;
 			this.textBox1.Name = "textBox1";
@@ -90,6 +90,16 @@
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(1230, 39);
 			this.panel1.TabIndex = 1;
+			// 
+			// cmdLoadJSON
+			// 
+			this.cmdLoadJSON.Location = new System.Drawing.Point(1062, 7);
+			this.cmdLoadJSON.Name = "cmdLoadJSON";
+			this.cmdLoadJSON.Size = new System.Drawing.Size(75, 23);
+			this.cmdLoadJSON.TabIndex = 13;
+			this.cmdLoadJSON.Text = "Load Data";
+			this.cmdLoadJSON.UseVisualStyleBackColor = true;
+			this.cmdLoadJSON.Click += new System.EventHandler(this.cmdLoadJSON_Click);
 			// 
 			// cmdQuickSearch
 			// 
@@ -255,16 +265,6 @@
 			this.propertyGrid1.Name = "propertyGrid1";
 			this.propertyGrid1.Size = new System.Drawing.Size(336, 544);
 			this.propertyGrid1.TabIndex = 0;
-			// 
-			// cmdLoadJSON
-			// 
-			this.cmdLoadJSON.Location = new System.Drawing.Point(1062, 7);
-			this.cmdLoadJSON.Name = "cmdLoadJSON";
-			this.cmdLoadJSON.Size = new System.Drawing.Size(75, 23);
-			this.cmdLoadJSON.TabIndex = 13;
-			this.cmdLoadJSON.Text = "Load Data";
-			this.cmdLoadJSON.UseVisualStyleBackColor = true;
-			this.cmdLoadJSON.Click += new System.EventHandler(this.cmdLoadJSON_Click);
 			// 
 			// Form1
 			// 
