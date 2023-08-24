@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing.Design;
 
 namespace Blue.TextDataTable
 {
@@ -88,31 +89,37 @@ namespace Blue.TextDataTable
 
 		/// <summary>[Required] Behavior Properties of the Table.</summary>
 		[Description("[Required] Behavior Properties of the Table"), Category("Behavior"), DisplayName("Properties")]
+		[Editor(typeof(MyPropEditor), typeof(UITypeEditor))]
 		public Propiedades properties { get; set; } = new Propiedades();
 
 		/// <summary>[Optional] Box used to show a Custom Title for the Table.</summary>
 		[Description("[Optional] Box used to show a Custom Title for the Table"), Category("Appearance"), DisplayName("Header")]
+		[Editor(typeof(MyPropEditor), typeof(UITypeEditor))]
 		public Header header { get; set; }
 
 		/// <summary>[Optional] Box used to show a Custom Text for the Table.</summary>
 		[Description("[Optional] Box used to show a Custom Text for the Table"), Category("Appearance"), DisplayName("Footer")]
+		[Editor(typeof(MyPropEditor), typeof(UITypeEditor))]
 		public Header footer { get; set; }
 
 		/// <summary>[Required] Definition of the Columns.</summary>
 		[Description("[Required] Definition of the Columns"), Category("Data"), DisplayName("Columns")]
-		public List<Column> columns { get; set; }
+		public BindingList<Column> columns { get; set; } = new BindingList<Column>();
+		//public List<Column> columns { get; set; } = new List<Column>();
 
 		/// <summary>[Optional] Columns to Sort By, Up to 4 Columns.</summary>
 		[Description("[Optional] Columns to Sort By, Up to 4 Columns."), Category("Data"), DisplayName("Sorting")]
+		[Editor(typeof(MyPropEditor), typeof(UITypeEditor))]
 		public Sorting sorting { get; set; }
 
 		/// <summary>[Optional] Columns to Group By, Up to 4 Columns.</summary>
 		[Description("[Optional] Columns to Group By, Up to 4 Columns."), Category("Data"), DisplayName("Grouping")]
+		[Editor(typeof(MyPropEditor), typeof(UITypeEditor))]
 		public Grouping grouping { get; set; }
 
 		/// <summary>[Optional] Calculated Fields for the Columns.</summary>
 		[Description("[Optional] Calculated Fields for the Columns"), Category("Data"), DisplayName("Summary")]
-		public List<Summary> summary { get; set; }
+		public BindingList<Summary> summary { get; set; } = new BindingList<Summary>();
 
 		/// <summary>[Required] Dynamic Data to feed the Table.</summary>
 		[Description("[Required] Dynamic Data to feed the Table."), Category("Data"), DisplayName("Dynamic Data")]
@@ -157,6 +164,11 @@ namespace Blue.TextDataTable
 		{
 			return new System.Drawing.Font(this.font_name, font_size, font_style);
 		}
+
+		public override string ToString()
+		{
+			return string.Format("{0}({1})", this.font_name, this.font_size);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -174,6 +186,11 @@ namespace Blue.TextDataTable
 
 		[DisplayName("Border Symbols"), Description("Char Symbols used for the Borders"), Category("Appearance")]
 		public List<SymbolElement> symbols { get; set; }
+
+		public override string ToString()
+		{
+			return string.Format("{0}", this.type);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -192,6 +209,11 @@ namespace Blue.TextDataTable
 
 		[Description("Symbols for the Sides Border")]
 		public SymbolChar Sides { get; set; }
+
+		public override string ToString()
+		{
+			return string.Format("Top({0}), Middle({1}), Bottom({2}), Sides({3})", this.Top, Middle, Bottom, Sides);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -203,6 +225,11 @@ namespace Blue.TextDataTable
 		public char Right { get; set; }
 		public char Middle { get; set; }
 		public char Border { get; set; }
+
+		public override string ToString()
+		{
+			return string.Format("{0}, {1}, {2}, {3}", this.Left, Right, Middle, Border);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -215,6 +242,11 @@ namespace Blue.TextDataTable
 
 		/// <summary>Configuration for the Rows of Data</summary>
 		public table_config data_rows { get; set; } = new table_config();
+
+		public override string ToString()
+		{
+			return "Table";
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -248,6 +280,11 @@ namespace Blue.TextDataTable
 		/// <summary>Show or hide the Column Headers.</summary>
 		[DisplayName("Visible"), Description("Show or hide the Column Headers."), Category("Appearance")]
 		public bool Visible { get; set; } = true;
+
+		public override string ToString()
+		{
+			return string.Format("Visible({0})", this.Visible );
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -285,6 +322,11 @@ namespace Blue.TextDataTable
 			font_style = System.Drawing.FontStyle.Regular,
 			font_size = 12
 		};
+
+		public override string ToString()
+		{
+			return string.Format("{0}", this.title);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -375,6 +417,11 @@ namespace Blue.TextDataTable
 		{
 			return new System.Drawing.SolidBrush(this.ToColor(pColorName));
 		}
+
+		public override string ToString()
+		{
+			return string.Format("Colores({0})", this.backcolor_argb);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -418,6 +465,11 @@ namespace Blue.TextDataTable
 		/// <summary>Text Horizontal Align: [left, center, right] default 'center'</summary>
 		[DisplayName("Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
 		public string align { get; set; } = "center";
+
+		public override string ToString()
+		{
+			return string.Format("{0} ({1})", this.field, this.width);
+		}
 	}
 
 
@@ -440,6 +492,11 @@ namespace Blue.TextDataTable
 
 		[DisplayName("Format"), Description("Format Used to Show the Data"), Category("Appearance")]
 		public string format { get; set; }
+
+		public override string ToString()
+		{
+			return string.Format("{0}({1})", this.agregate, this.field);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -454,7 +511,7 @@ namespace Blue.TextDataTable
 
 		/// <summary>Data Fields to Group by</summary>
 		[DisplayName("Fields"), Description("Data Fields to Group by"), Category("Data")]
-		public List<string> fields { get; set; }
+		public BindingList<string> fields { get; set; } = new BindingList<string>();
 
 		/// <summary>Hide or Show the Records Count for each Group.</summary>
 		[DisplayName("Show Count"), Description("Hide or Show the Records Count for each Group."), Category("Data")]
@@ -484,6 +541,11 @@ namespace Blue.TextDataTable
 			font_style = System.Drawing.FontStyle.Regular,
 			font_size = 12
 		};
+
+		public override string ToString()
+		{
+			return string.Format("Grouping({0})", this.enabled);
+		}
 	}
 
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
@@ -500,7 +562,12 @@ namespace Blue.TextDataTable
 		/// <para>[REQUIRED] if 'enabled' is true.</para>
 		/// <para>You can specify the direction for each field:  'field_name1 DESC', 'field_name2 ASC'</para></summary>
 		[DisplayName("Fields"), Description("Data Fields to Sort by. Default Sort Direction is 'ASC'. [REQUIRED] if 'enabled' is true."), Category("Data")]
-		public List<string> fields { get; set; }
+		public BindingList<string> fields { get; set; } = new BindingList<string>();
+
+		public override string ToString()
+		{
+			return string.Format("Sorting({0})", this.enabled);
+		}
 	}
 
 	public class GroupData
@@ -758,4 +825,27 @@ namespace Blue.TextDataTable
 			set { rIndex = value; }
 		}
 	}
+
+	/* BOTON PARA LOS INICIALIZADORES DE LAS PROPIEDADES  */
+	public class MyPropEditor : UITypeEditor
+	{
+		//Generico para Inicializar cualquier propiedad
+		public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
+		{
+			return UITypeEditorEditStyle.Modal;
+		}
+
+		public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
+		{
+			if (value != null) // already initialized
+				return base.EditValue(context, provider, value);
+
+			//Crea una nueva instancia del tipo de la propiedad
+			return Activator.CreateInstance(context.PropertyDescriptor.PropertyType);
+		}
+	}
+
+
+
+
 }

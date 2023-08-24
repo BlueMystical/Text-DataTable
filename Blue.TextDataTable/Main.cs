@@ -16,8 +16,8 @@ namespace Blue.TextDataTable
 	public class TextDataTable
 	{
 		public TextDataTable()
-		{		
-
+		{
+			
 		}
 		public TextDataTable(string pConfigJsonFile)
 		{
@@ -181,7 +181,7 @@ namespace Blue.TextDataTable
 						{
 							if (TConfiguration.sorting.fields != null && TConfiguration.sorting.fields.Count > 0)
 							{
-								DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields);
+								DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields.ToList());
 							}
 						}
 					}
@@ -201,7 +201,7 @@ namespace Blue.TextDataTable
 							if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
 							{
 								//1. Group the Data:
-								GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields);
+								GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields.ToList());
 
 								//2. Build the Groups and their components:
 								if (GroupedData != null && GroupedData.Count > 0)
@@ -1325,7 +1325,7 @@ namespace Blue.TextDataTable
 							{
 								if (TConfiguration.sorting.fields != null && TConfiguration.sorting.fields.Count > 0)
 								{
-									DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields);
+									DataSource = DynamicSorting(DataSource, TConfiguration.sorting.fields.ToList());
 								}
 							}
 						}
@@ -1345,7 +1345,7 @@ namespace Blue.TextDataTable
 								if (TConfiguration.grouping.fields != null && TConfiguration.grouping.fields.Count > 0)
 								{
 									//Here we do the Actual Data Grouping:
-									GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields);
+									GroupedData = DynamicGrouping(DataSource, TConfiguration.grouping.fields.ToList());
 
 									//Here we Draw the Grouped Data:
 									if (GroupedData != null && GroupedData.Count > 0)
@@ -1987,7 +1987,7 @@ namespace Blue.TextDataTable
 			List<FilterCriteria> _ret = null;
 			try
 			{
-				FilterEditor Form = new FilterEditor(this.TConfiguration.columns, this.OriginalData);
+				FilterEditor Form = new FilterEditor(this.TConfiguration.columns.ToList(), this.OriginalData);
 				Form.Criteria = (pCritera != null) ? pCritera : this.FilterCriteria; //<- If we already have a filter then we use it
 				if (Form.ShowDialog() == DialogResult.OK)
 				{
@@ -3088,7 +3088,7 @@ namespace Blue.TextDataTable
 					//Get the Columns Definitions:					
 					foreach (string _Col in SortingFields)
 					{
-						Columns.Add(TConfiguration.columns.Find(x => x.field == _Col));
+						Columns.Add(TConfiguration.columns.ToList().Find(x => x.field == _Col));
 					}
 
 					//1. Get Unique Values for each Group Field:  
