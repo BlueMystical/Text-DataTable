@@ -16,3 +16,21 @@ D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable_TEST\obj\Debug
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.exe
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.pdb
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable.TEST.DataEditor.resources
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\table_config.json
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Blue.TextDataTable_TEST.exe.config
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Blue.TextDataTable_TEST.exe
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Blue.TextDataTable_TEST.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Blue.TextDataTable.dll
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Blue.TextDataTable.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Newtonsoft.Json.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.csproj.AssemblyReference.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable.TEST.DataEditor.resources
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable.TEST.Form1.resources
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.Properties.Resources.resources
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.csproj.GenerateResource.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.csproj.CoreCompileInputs.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.csproj.CopyComplete
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.exe
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable_TEST\obj\Debug\Blue.TextDataTable_TEST.pdb

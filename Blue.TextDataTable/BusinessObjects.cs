@@ -21,70 +21,6 @@ namespace Blue.TextDataTable
 				type = "simple",
 				color_argb = "255, 255, 106, 0",
 			};
-			properties.borders.symbols = new List<SymbolElement>(new SymbolElement[] {
-				// Double Border
-				new SymbolElement()
-				{
-					Top = new SymbolChar()
-					{
-						Left = '╔',
-						Right = '╗',
-						Middle = '╦',
-						Border = '═'
-					},
-					Middle = new SymbolChar()
-					{
-						Left = '╠',
-						Right = '╣',
-						Middle = '╬',
-						Border = '║'
-					},
-					Bottom = new SymbolChar()
-					{
-						Left = '╚',
-						Right = '╝',
-						Middle = '╩',
-						Border = '═'
-					},
-					Sides = new SymbolChar()
-					{
-						Left = '║',
-						Right = '║',
-						Border = '═'
-					},
-				},
-				// Simple Border
-				new SymbolElement()
-				{
-					Top = new SymbolChar()
-					{
-						Left = '┌',
-						Right = '┐',
-						Middle = '┬',
-						Border = '─'
-					},
-					Middle = new SymbolChar()
-					{
-						Left = '├',
-						Right = '┤',
-						Middle = '┼',
-						Border = '│'
-					},
-					Bottom = new SymbolChar()
-					{
-						Left = '└',
-						Right = '┘',
-						Middle = '┴',
-						Border = '─'
-					},
-					Sides = new SymbolChar()
-					{
-						Left = '│',
-						Right = '│',
-						Border = '─'
-					},
-				},
-			});
 		}
 
 		/// <summary>[Required] Behavior Properties of the Table.</summary>
@@ -174,7 +110,72 @@ namespace Blue.TextDataTable
 	[Newtonsoft.Json.JsonObject, TypeConverter(typeof(ExpandableObjectConverter))]
 	public class Borders
 	{
-		public Borders() { }
+		public Borders() {
+			symbols = new List<SymbolElement>(new SymbolElement[] {
+				// Double Border
+				new SymbolElement()
+				{
+					Top = new SymbolChar()
+					{
+						Left = '╔',
+						Right = '╗',
+						Middle = '╦',
+						Border = '═'
+					},
+					Middle = new SymbolChar()
+					{
+						Left = '╠',
+						Right = '╣',
+						Middle = '╬',
+						Border = '║'
+					},
+					Bottom = new SymbolChar()
+					{
+						Left = '╚',
+						Right = '╝',
+						Middle = '╩',
+						Border = '═'
+					},
+					Sides = new SymbolChar()
+					{
+						Left = '║',
+						Right = '║',
+						Border = '═'
+					},
+				},
+				// Simple Border
+				new SymbolElement()
+				{
+					Top = new SymbolChar()
+					{
+						Left = '┌',
+						Right = '┐',
+						Middle = '┬',
+						Border = '─'
+					},
+					Middle = new SymbolChar()
+					{
+						Left = '├',
+						Right = '┤',
+						Middle = '┼',
+						Border = '│'
+					},
+					Bottom = new SymbolChar()
+					{
+						Left = '└',
+						Right = '┘',
+						Middle = '┴',
+						Border = '─'
+					},
+					Sides = new SymbolChar()
+					{
+						Left = '│',
+						Right = '│',
+						Border = '─'
+					},
+				},
+			});
+		}
 
 		[Description("Type of Borders: 'simple', 'doble'"),
 		DisplayName("Border Type"), DefaultValue("simple"), Category("Appearance")]
@@ -466,7 +467,11 @@ namespace Blue.TextDataTable
 		[DisplayName("Align"), Description("Text Align: [left, center, right]"), Category("Appearance")]
 		public string align { get; set; } = "center";
 
-		public override string ToString()
+		/// <summary>Hide/Show the Column when generating the Table.</summary>
+		[DisplayName("Visible"), Description("Hide/Show the Column when generating the Table."), Category("Appearance")]
+		public bool visible { get; set; } = true;
+
+        public override string ToString()
 		{
 			return string.Format("{0} ({1})", this.field, this.width);
 		}

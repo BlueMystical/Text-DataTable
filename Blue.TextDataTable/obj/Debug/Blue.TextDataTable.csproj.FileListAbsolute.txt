@@ -9,3 +9,15 @@ D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.CopyComplete
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.dll
 D:\Documentos\@Proyectos\VS-2017\TextDataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\bin\Debug\Blue.TextDataTable.dll
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\bin\Debug\Blue.TextDataTable.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.pdb
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.AssemblyReference.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.Forms.FilterEditor.resources
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.GenerateResource.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.CoreCompileInputs.cache
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.csproj.CopyComplete
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.dll
+C:\Users\Blue Mystic\Source\Repos\Text-DataTable\Blue.TextDataTable\obj\Debug\Blue.TextDataTable.pdb
